@@ -83,6 +83,33 @@
     gap: 6px;
     flex-wrap: wrap;
   }
+  .mode-filters {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin: 10px 0 4px;
+  }
+  .mode-chip {
+    background: transparent;
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+    font-family: inherit;
+    font-size: 0.75rem;
+    padding: 5px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .mode-chip.active {
+    background: var(--gold);
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .mode-chip:hover, .mode-chip:focus-visible {
+    background: var(--gold);
+    color: var(--ink);
+    outline: none;
+  }
   .about-link {
     background: transparent;
     border: 1px solid var(--gold-dim);
@@ -846,11 +873,10 @@
 <div class="hero">
   <p class="eyebrow"><span class="ledger-mark">£</span>Sổ tay cá nhân
     <span class="eyebrow-actions">
-      <button class="about-link" id="favViewBtn" type="button">★ Yêu thích</button>
-      <button class="about-link" id="learnedViewBtn" type="button">✓ Đã thuộc</button>
       <button class="about-link" id="aboutLink" type="button">Giới thiệu về tôi</button>
     </span>
   </p>
+  <div class="mode-filters" id="modeFilters"></div>
   <h1 class="brand-title">Sổ tay từ vựng</h1>
   <p class="desc">Từ vựng và thành ngữ tiếng Anh theo chủ đề — chạm vào mỗi thẻ để xem nghĩa, chạm biểu tượng loa để nghe phát âm.</p>
   <p class="tally" id="tally">Đang tải dữ liệu...</p>
@@ -1042,7 +1068,7 @@
     activeTopic = (saved && topicKeys.includes(saved.activeTopic)) ? saved.activeTopic : topicKeys[0];
     const validCats = Object.keys(TOPICS[activeTopic].categories);
     activeCategory = (saved && (saved.activeCategory === 'all' || validCats.includes(saved.activeCategory))) ? saved.activeCategory : 'all';
-    viewMode = (saved && ['browse', 'favorite', 'learned'].includes(saved.viewMode)) ? saved.viewMode : 'browse';
+    viewMode = (saved && ['browse', 'favorite', 'learned', 'unlearned'].includes(saved.viewMode)) ? saved.viewMode : 'browse';
     if (saved && saved.search) searchInput.value = saved.search;
 
     if (saved && typeof saved.scrollY === 'number') {
@@ -1328,9 +1354,29 @@
   topicTabsWrap.addEventListener('scroll', updateTopicTabsThumb);
   window.addEventListener('resize', updateTopicTabsThumb);
 
+  function passesMode(it) {
+    if (viewMode === 'favorite' && !it.favorite) return false;
+    if (viewMode === 'learned' && !it.learned) return false;
+    if (viewMode === 'unlearned' && it.learned) return false;
+    return true;
+  }
+
+  function topicHasMatch(topicKey) {
+    return allItems.some(it => it.topic === topicKey && passesMode(it));
+  }
+
+  function categoryHasMatch(topicKey, catKey) {
+    return allItems.some(it => it.topic === topicKey && it.category === catKey && passesMode(it));
+  }
+
   function renderTopicTabs() {
+    const visibleTopicKeys = topicKeys.filter(topicHasMatch);
+    if (!visibleTopicKeys.includes(activeTopic)) {
+      activeTopic = visibleTopicKeys[0] || topicKeys[0];
+      activeCategory = 'all';
+    }
     topicTabsWrap.innerHTML = '';
-    topicKeys.forEach(key => {
+    visibleTopicKeys.forEach(key => {
       const btn = document.createElement('button');
       btn.className = 'topic-tab' + (key === activeTopic ? ' active' : '');
       btn.textContent = TOPICS[key].label;
@@ -1369,51 +1415,61 @@
   }
 
   function renderCategoryChips() {
+    const visibleCatEntries = Object.entries(TOPICS[activeTopic].categories)
+      .filter(([catKey]) => categoryHasMatch(activeTopic, catKey));
+    if (activeCategory !== 'all' && !visibleCatEntries.some(([catKey]) => catKey === activeCategory)) {
+      activeCategory = 'all';
+    }
     chipsWrap.innerHTML = '';
     chipsWrap.appendChild(makeChip('all', 'Tất cả'));
-    Object.entries(TOPICS[activeTopic].categories).forEach(([catKey, catLabel]) => {
+    visibleCatEntries.forEach(([catKey, catLabel]) => {
       chipsWrap.appendChild(makeChip(catKey, catLabel));
     });
     chipsWrap.scrollLeft = 0;
     requestAnimationFrame(updateChipsThumb);
   }
 
-  // ---------- Bộ chọn chế độ xem: Yêu thích / Đã thuộc (2 nút nhỏ cạnh Giới thiệu về tôi) ----------
-  const favViewBtn = document.getElementById('favViewBtn');
-  const learnedViewBtn = document.getElementById('learnedViewBtn');
+  // ---------- Bộ chọn chế độ xem: Tất cả / Yêu thích / Đã thuộc / Chưa thuộc ----------
+  const modeFiltersWrap = document.getElementById('modeFilters');
   const topicTabsWrapOuter = document.getElementById('topicTabsWrapOuter');
   const topicTabsScrollTrack = document.getElementById('topicTabsScrollTrack');
   const chipsWrapOuter = document.getElementById('chipsWrapOuter');
   const chipsScrollTrack = document.getElementById('chipsScrollTrack');
 
+  const MODE_OPTIONS = [
+    { key: 'browse', label: 'Tất cả' },
+    { key: 'favorite', label: '★ Yêu thích' },
+    { key: 'learned', label: '✓ Đã thuộc' },
+    { key: 'unlearned', label: 'Chưa thuộc' }
+  ];
+
   function setViewMode(mode) {
-    viewMode = (viewMode === mode) ? 'browse' : mode; // bấm lại nút đang bật sẽ quay về duyệt chủ đề
+    viewMode = mode;
     renderViewTabs();
+    renderTopicTabs();
+    renderCategoryChips();
     updateModeVisibility();
     saveState();
     render();
   }
 
-  favViewBtn.addEventListener('click', () => setViewMode('favorite'));
-  learnedViewBtn.addEventListener('click', () => setViewMode('learned'));
-
   function renderViewTabs() {
-    favViewBtn.classList.toggle('active', viewMode === 'favorite');
-    learnedViewBtn.classList.toggle('active', viewMode === 'learned');
+    modeFiltersWrap.innerHTML = '';
+    MODE_OPTIONS.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'mode-chip' + (opt.key === viewMode ? ' active' : '');
+      btn.textContent = opt.label;
+      btn.dataset.key = opt.key;
+      btn.addEventListener('click', () => setViewMode(opt.key));
+      modeFiltersWrap.appendChild(btn);
+    });
     updateModeVisibility();
   }
 
   function updateModeVisibility() {
-    const isBrowse = viewMode === 'browse';
-    const display = isBrowse ? '' : 'none';
-    topicTabsWrapOuter.style.display = display;
-    topicTabsScrollTrack.style.display = isBrowse ? '' : 'none';
-    chipsWrapOuter.style.display = display;
-    chipsScrollTrack.style.display = isBrowse ? '' : 'none';
-    if (isBrowse) {
-      requestAnimationFrame(updateTopicTabsThumb);
-      requestAnimationFrame(updateChipsThumb);
-    }
+    // Luôn hiện tab chủ đề và chip — viewMode chỉ lọc thêm nội dung, không thay đổi cách hiển thị
+    requestAnimationFrame(updateTopicTabsThumb);
+    requestAnimationFrame(updateChipsThumb);
   }
 
   const chipsThumb = document.getElementById('chipsThumb');
@@ -1476,18 +1532,17 @@
 
     let shown = 0;
 
-    if (viewMode !== 'browse') {
-      // Danh sách riêng: Yêu thích / Đã thuộc — xuyên suốt toàn bộ database, không phụ thuộc chủ đề đang chọn
+    const searching = query.length > 0;
+
+    if (searching) {
+      // Tìm kiếm xuyên suốt toàn bộ database, bỏ qua giới hạn chủ đề lớn/nhỏ đang chọn, vẫn áp dụng viewMode
       topicKeys.forEach(topicKey => {
         Object.keys(TOPICS[topicKey].categories).forEach(key => {
           const items = allItems.filter(it => it.category === key && it.topic === topicKey);
           const filtered = items.filter(it => {
-            if (viewMode === 'favorite' && !it.favorite) return false;
-            if (viewMode === 'learned' && !it.learned) return false;
-            if (!query) return true;
+            if (!passesMode(it)) return false;
             return it.term.toLowerCase().includes(query) ||
-                   it.meaning.toLowerCase().includes(query) ||
-                   it.en.toLowerCase().includes(query);
+                   it.meaning.toLowerCase().includes(query);
           });
           if (filtered.length === 0) return;
 
@@ -1503,49 +1558,24 @@
         });
       });
     } else {
-      const searching = query.length > 0;
+      // Duyệt theo chủ đề lớn/nhỏ đang chọn — cách hiển thị giống nhau cho mọi viewMode, chỉ khác nội dung được lọc
+      const categoryKeysInTopic = Object.keys(TOPICS[activeTopic].categories);
+      categoryKeysInTopic.forEach(key => {
+        if (activeCategory !== 'all' && activeCategory !== key) return;
+        const items = allItems.filter(it => it.category === key && it.topic === activeTopic);
+        const filtered = items.filter(passesMode);
+        if (filtered.length === 0) return;
 
-      if (searching) {
-        // Tìm kiếm xuyên suốt toàn bộ database, bỏ qua giới hạn chủ đề lớn/nhỏ đang chọn
-        topicKeys.forEach(topicKey => {
-          Object.keys(TOPICS[topicKey].categories).forEach(key => {
-            const items = allItems.filter(it => it.category === key && it.topic === topicKey);
-            const filtered = items.filter(it => {
-              return it.term.toLowerCase().includes(query) ||
-                     it.meaning.toLowerCase().includes(query) ||
-                     it.en.toLowerCase().includes(query);
-            });
-            if (filtered.length === 0) return;
-
-            const section = document.createElement('div');
-            section.className = 'section-block';
-            section.innerHTML = `
-              <h2 class="section-heading">${TOPICS[topicKey].label} — ${CATEGORY_META[key]}<span class="section-count">${filtered.length} mục</span></h2>
-              <div class="card-list">
-                ${filtered.map(it => cardHTML(it)).join('')}
-              </div>`;
-            main.appendChild(section);
-            shown += filtered.length;
-          });
-        });
-      } else {
-        const categoryKeysInTopic = Object.keys(TOPICS[activeTopic].categories);
-        categoryKeysInTopic.forEach(key => {
-          if (activeCategory !== 'all' && activeCategory !== key) return;
-          const items = allItems.filter(it => it.category === key && it.topic === activeTopic);
-          if (items.length === 0) return;
-
-          const section = document.createElement('div');
-          section.className = 'section-block';
-          section.innerHTML = `
-            <h2 class="section-heading">${CATEGORY_META[key]}<span class="section-count">${items.length} mục</span></h2>
-            <div class="card-list">
-              ${items.map(it => cardHTML(it)).join('')}
-            </div>`;
-          main.appendChild(section);
-          shown += items.length;
-        });
-      }
+        const section = document.createElement('div');
+        section.className = 'section-block';
+        section.innerHTML = `
+          <h2 class="section-heading">${CATEGORY_META[key]}<span class="section-count">${filtered.length} mục</span></h2>
+          <div class="card-list">
+            ${filtered.map(it => cardHTML(it)).join('')}
+          </div>`;
+        main.appendChild(section);
+        shown += filtered.length;
+      });
     }
 
     noResults.style.display = shown === 0 ? 'block' : 'none';
