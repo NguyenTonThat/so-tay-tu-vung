@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Sổ tay từ vựng — Thành ngữ tiền bạc</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0F1B2D;
+    --surface: #16243A;
+    --surface-2: #1C2E48;
+    --paper: #F1E9D8;
+    --paper-dim: #B9C2CF;
+    --gold: #C9A227;
+    --gold-dim: #8F7830;
+    --rule: rgba(241, 233, 216, 0.14);
+    --radius: 10px;
+    --max-w: 560px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'IBM Plex Sans', -apple-system, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .headword, .brand-title {
+    font-family: 'Fraunces', Georgia, serif;
+  }
+
+  a { color: inherit; }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    padding: 34px 20px 26px;
+    max-width: var(--max-w);
+    margin: 0 auto;
+    position: relative;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(90deg, var(--gold-dim), transparent 70%);
+  }
+  .eyebrow {
+    color: var(--gold);
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
+    margin: 0 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .eyebrow .ledger-mark {
+    width: 18px;
+    height: 18px;
+    border: 1px solid var(--gold);
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+  }
+  .brand-title {
+    font-size: 1.9rem;
+    font-weight: 600;
+    font-style: italic;
+    margin: 0 0 8px;
+    color: var(--paper);
+    letter-spacing: -0.01em;
+  }
+  .hero p.desc {
+    margin: 0;
+    color: var(--paper-dim);
+    font-size: 0.92rem;
+    max-width: 42ch;
+  }
+  .hero .tally {
+    margin-top: 16px;
+    font-size: 0.8rem;
+    color: var(--gold-dim);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .status-dot {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+  }
+  .status-dot::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4ADE80;
+  }
+  .status-dot.offline::before { background: #E0A93B; }
+  .status-dot.offline { color: #E0A93B; }
+
+  /* ---------- Sticky controls ---------- */
+  .controls {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--ink);
+    border-bottom: 1px solid var(--rule);
+    padding: 14px 20px 12px;
+  }
+  .controls-inner {
+    max-width: var(--max-w);
+    margin: 0 auto;
+  }
+  .search-wrap {
+    position: relative;
+    margin-bottom: 12px;
+  }
+  .search-wrap svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    stroke: var(--paper-dim);
+  }
+  #search {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    color: var(--paper);
+    font-family: inherit;
+    font-size: 0.95rem;
+    padding: 11px 14px 11px 36px;
+    outline: none;
+  }
+  #search::placeholder { color: var(--paper-dim); }
+  #search:focus-visible {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.18);
+  }
+
+  .chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: 0 0 auto;
+    background: transparent;
+    border: 1px solid var(--rule);
+    color: var(--paper-dim);
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 7px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .chip:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .chip.active {
+    border-color: var(--gold);
+    color: var(--ink);
+    background: var(--gold);
+    font-weight: 500;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .toggle-switch {
+    width: 34px;
+    height: 19px;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    position: relative;
+    flex: 0 0 auto;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .toggle-switch::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--paper-dim);
+    transition: transform 0.15s, background 0.15s;
+  }
+  .toggle-row.on .toggle-switch {
+    background: rgba(201, 162, 39, 0.25);
+    border-color: var(--gold);
+  }
+  .toggle-row.on .toggle-switch::after {
+    transform: translateX(15px);
+    background: var(--gold);
+  }
+  .toggle-label {
+    font-size: 0.85rem;
+    color: var(--paper-dim);
+  }
+  .toggle-row.on .toggle-label { color: var(--paper); }
+
+  /* ---------- Content ---------- */
+  main {
+    max-width: var(--max-w);
+    margin: 0 auto;
+    padding: 6px 20px 60px;
+  }
+
+  .section-heading {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    color: var(--gold);
+    font-size: 1.05rem;
+    font-weight: 500;
+    margin: 30px 0 12px;
+    padding-top: 4px;
+  }
+  .section-heading:first-of-type { margin-top: 22px; }
+  .section-count {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-style: normal;
+    color: var(--paper-dim);
+    font-size: 0.78rem;
+    margin-left: 6px;
+  }
+
+  .card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* ---------- Flip card ---------- */
+  .card-flip {
+    perspective: 1200px;
+  }
+  .card-inner {
+    display: grid;
+    width: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+    cursor: pointer;
+  }
+  .card-flip.flipped .card-inner { transform: rotateY(180deg); }
+
+  .card-face {
+    grid-area: 1 / 1;
+    align-self: stretch;
+    backface-visibility: hidden;
+    border-radius: var(--radius);
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    padding: 16px 16px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100px;
+  }
+  .card-face.back {
+    transform: rotateY(180deg);
+    background: var(--surface-2);
+    border-color: rgba(201, 162, 39, 0.35);
+  }
+
+  .face-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .headword {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--paper);
+    line-height: 1.25;
+  }
+  .ipa {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    color: var(--paper-dim);
+    font-size: 0.85rem;
+    margin-top: 3px;
+  }
+  .hint {
+    font-size: 0.72rem;
+    color: var(--gold-dim);
+    align-self: flex-end;
+    margin-top: 10px;
+  }
+
+  .learned-badge {
+    font-size: 0.68rem;
+    color: #4ADE80;
+    border: 1px solid rgba(74, 222, 128, 0.4);
+    border-radius: 999px;
+    padding: 2px 8px;
+    align-self: flex-start;
+    margin-top: 8px;
+  }
+
+  .learn-btn {
+    align-self: flex-start;
+    margin-top: 10px;
+    background: transparent;
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 6px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .learn-btn.is-learned {
+    border-color: #4ADE80;
+    color: #4ADE80;
+  }
+  .learn-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  .speak-btn {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--gold-dim);
+    background: transparent;
+    color: var(--gold);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0;
+    transition: background 0.15s, color 0.15s;
+  }
+  .speak-btn:hover, .speak-btn.playing {
+    background: var(--gold);
+    color: var(--ink);
+  }
+  .speak-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .speak-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .meaning {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    color: var(--gold);
+    font-size: 1.05rem;
+    line-height: 1.3;
+  }
+  .divider {
+    height: 1px;
+    background: var(--rule);
+    margin: 10px 0;
+  }
+  .example-en {
+    font-style: italic;
+    font-size: 0.86rem;
+    color: var(--paper);
+  }
+  .example-vi {
+    font-size: 0.8rem;
+    color: var(--paper-dim);
+    margin-top: 4px;
+  }
+
+  .no-results {
+    display: none;
+    text-align: center;
+    color: var(--paper-dim);
+    padding: 40px 10px;
+    font-size: 0.9rem;
+  }
+
+  .no-tts-notice {
+    display: none;
+    max-width: var(--max-w);
+    margin: 0 auto;
+    background: rgba(201, 162, 39, 0.1);
+    border: 1px solid rgba(201, 162, 39, 0.35);
+    color: var(--gold);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+  }
+
+  footer {
+    text-align: center;
+    color: var(--paper-dim);
+    font-size: 0.78rem;
+    padding: 10px 20px 40px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card-inner { transition: none; }
+  }
+
+  @media (min-width: 640px) {
+    .hero { padding-top: 48px; }
+    .brand-title { font-size: 2.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <p class="eyebrow"><span class="ledger-mark">£</span>Sổ tay cá nhân</p>
+  <h1 class="brand-title">Từ vựng tiền bạc</h1>
+  <p class="desc">Thành ngữ và từ vựng tiếng Anh về nghèo, giàu, đắt, rẻ — chạm vào mỗi thẻ để xem nghĩa, chạm biểu tượng loa để nghe phát âm.</p>
+  <p class="tally" id="tally"></p>
+</div>
+
+<div class="controls">
+  <div class="controls-inner">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input id="search" type="text" placeholder="Tìm từ hoặc nghĩa..." autocomplete="off">
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="toggle-row" id="unlearnedToggle">
+      <div class="toggle-switch"></div>
+      <span class="toggle-label">Chỉ hiện từ chưa thuộc</span>
+    </div>
+  </div>
+</div>
+
+<p class="no-tts-notice" id="ttsNotice">Trình duyệt của bạn không hỗ trợ phát âm tự động. Hãy tra từ trên từ điển để nghe phát âm.</p>
+
+<main id="main">
+  <p class="no-results" id="noResults">Không tìm thấy từ phù hợp.</p>
+</main>
+
+<footer>Sổ tay từ vựng · cập nhật thêm khi học từ mới</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+  // ---------- Cấu hình Supabase ----------
+  const SUPABASE_URL = 'https://ydwcrxsdtmlhpwbcpyqr.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_0Z-0NwidZO3-VE2K8voAwQ_BL0SKb_5';
+
+  const CATEGORY_META = {
+    poor: 'Nghèo khổ',
+    rich: 'Giàu có',
+    expensive: 'Quá đắt',
+    cheap: 'Quá rẻ'
+  };
+  const categoryKeys = Object.keys(CATEGORY_META);
+
+  // Dữ liệu dự phòng khi không kết nối được Supabase (chế độ ngoại tuyến)
+  const FALLBACK_ITEMS = [
+    { category: "poor", term: "Dirt poor", ipa: "/dɜːrt pɔːr/", meaning: "Nghèo rớt mồng tơi", en: "Growing up, his family was dirt poor and could barely afford food.", vi: "Lớn lên, gia đình anh ấy nghèo rớt mồng tơi, không đủ tiền mua thức ăn." },
+    { category: "poor", term: "Flat broke", ipa: "/flæt broʊk/", meaning: "Không xu dính túi", en: "I can't go out tonight, I'm flat broke until payday.", vi: "Tối nay tôi không đi đâu được, tôi không xu dính túi cho đến ngày lãnh lương." },
+    { category: "poor", term: "Live from hand to mouth", ipa: "/lɪv frəm hænd tə maʊθ/", meaning: "Sống bữa nay lo bữa mai", en: "After losing his job, he had to live from hand to mouth for months.", vi: "Sau khi mất việc, anh ấy phải sống bữa nay lo bữa mai suốt nhiều tháng." },
+    { category: "poor", term: "Tighten your belt", ipa: "/taɪtn jɔːr bɛlt/", meaning: "Thắt lưng buộc bụng", en: "We need to tighten our belts if we want to save enough for the house.", vi: "Chúng ta cần thắt lưng buộc bụng nếu muốn dành đủ tiền mua nhà." },
+    { category: "poor", term: "Live on bread and water", ipa: "/lɪv ɒn brɛd ænd wɔːtər/", meaning: "Sống lay lắt qua ngày", en: "During the recession, many families had to live on bread and water.", vi: "Trong thời kỳ suy thoái, nhiều gia đình phải sống lay lắt qua ngày." },
+    { category: "poor", term: "Destitute", ipa: "/ˈdɛstɪtjuːt/", meaning: "Cực kì thiếu thốn", en: "The war left thousands of people destitute and homeless.", vi: "Chiến tranh khiến hàng ngàn người rơi vào cảnh cực kì thiếu thốn và không nhà cửa." },
+    { category: "rich", term: "Rolling in money", ipa: "/ˈroʊlɪŋ ɪn ˈmʌni/", meaning: "Giàu nứt đố đổ vách", en: "Ever since he sold his company, he's been rolling in money.", vi: "Từ khi bán công ty, anh ấy giàu nứt đố đổ vách." },
+    { category: "rich", term: "Filthy rich", ipa: "/ˈfɪlθi rɪtʃ/", meaning: "Giàu sụ, giàu nứt vách", en: "Her uncle is filthy rich; he owns three mansions.", vi: "Chú của cô ấy giàu sụ; ông ấy sở hữu ba biệt thự." },
+    { category: "rich", term: "Loaded", ipa: "/ˈloʊdɪd/", meaning: "Nhiều tiền, giàu có", en: "Don't worry about the bill, he's loaded.", vi: "Đừng lo về hóa đơn, anh ta nhiều tiền lắm." },
+    { category: "rich", term: "Well-off", ipa: "/wɛl ɔːf/", meaning: "Khá giả", en: "They live in a well-off neighborhood with big houses and gardens.", vi: "Họ sống trong một khu dân cư khá giả với nhà cửa và sân vườn rộng lớn." },
+    { category: "rich", term: "Born with a silver spoon", ipa: "/bɔːrn wɪð ə ˈsɪlvər spuːn/", meaning: "Sinh ra đã ngậm thìa vàng", en: "She was born with a silver spoon in her mouth and never had to work.", vi: "Cô ấy sinh ra đã ngậm thìa vàng và chưa từng phải làm việc." },
+    { category: "rich", term: "Have money to burn", ipa: "/hæv ˈmʌni tə bɜːrn/", meaning: "Tiền tiêu không hết", en: "With his new bonus, he has money to burn this year.", vi: "Với khoản thưởng mới, năm nay anh ấy có tiền tiêu không hết." },
+    { category: "expensive", term: "Exorbitant", ipa: "/ɪɡˈzɔːrbɪtənt/", meaning: "Cắt cổ, quá đắt vô lý", en: "The prices at that restaurant are exorbitant for such small portions.", vi: "Giá ở nhà hàng đó cắt cổ so với phần ăn nhỏ như vậy." },
+    { category: "expensive", term: "Extortionate", ipa: "/ɪkˈstɔːrʃənət/", meaning: "Cắt cổ (mang tính bóc lột)", en: "The mechanic charged an extortionate fee just to change a tire.", vi: "Người thợ sửa xe tính phí cắt cổ chỉ để thay một cái lốp." },
+    { category: "expensive", term: "Sky-high", ipa: "/ˈskaɪ haɪ/", meaning: "Giá trên trời", en: "Airfares are sky-high during the holiday season.", vi: "Giá vé máy bay lên trời vào mùa lễ hội." },
+    { category: "expensive", term: "Cost a fortune", ipa: "/kɒst ə ˈfɔːrtʃən/", meaning: "Tốn cả gia tài", en: "That designer bag must have cost a fortune.", vi: "Cái túi hàng hiệu đó chắc tốn cả gia tài." },
+    { category: "expensive", term: "Cost an arm and a leg", ipa: "/kɒst ən ɑːrm ænd ə lɛɡ/", meaning: "Đắt cắt cổ (thành ngữ)", en: "Fixing the car cost him an arm and a leg.", vi: "Sửa xe khiến anh ấy tốn một khoản tiền lớn." },
+    { category: "expensive", term: "Overpriced", ipa: "/ˌoʊvərˈpraɪst/", meaning: "Định giá quá cao so với giá trị", en: "This phone is overpriced considering its outdated features.", vi: "Điện thoại này bị định giá quá cao so với tính năng lỗi thời." },
+    { category: "cheap", term: "Dirt cheap", ipa: "/dɜːrt tʃiːp/", meaning: "Rẻ như cho", en: "I got this jacket dirt cheap at the outlet sale.", vi: "Tôi mua cái áo khoác này rẻ như cho tại đợt sale outlet." },
+    { category: "cheap", term: "Cheap as chips", ipa: "/tʃiːp æz tʃɪps/", meaning: "Rẻ bèo (Anh-Anh)", en: "These vegetables are cheap as chips at the local market.", vi: "Rau củ ở chợ địa phương rẻ bèo." },
+    { category: "cheap", term: "A steal", ipa: "/ə stiːl/", meaning: "Hời, mua như \"ăn cắp\"", en: "At that price, the laptop was a steal.", vi: "Với giá đó, cái laptop này quá hời." },
+    { category: "cheap", term: "Bargain-basement", ipa: "/ˈbɑːrɡɪn ˈbeɪsmənt/", meaning: "Giá bèo, rẻ mạt", en: "The store sells bargain-basement electronics that break easily.", vi: "Cửa hàng bán đồ điện tử giá bèo, dễ hỏng." },
+    { category: "cheap", term: "Next to nothing", ipa: "/nɛkst tə ˈnʌθɪŋ/", meaning: "Gần như miễn phí", en: "She bought the antique vase for next to nothing at a garage sale.", vi: "Cô ấy mua cái bình cổ với giá gần như miễn phí." },
+    { category: "cheap", term: "Practically giving it away", ipa: "/ˈpræktɪkli ˈɡɪvɪŋ ɪt əˈweɪ/", meaning: "Bán như cho", en: "At $5 a shirt, they're practically giving them away.", vi: "Với giá 5 đô một cái áo, họ bán như cho vậy." }
+  ];
+
+  let allItems = [];
+  let offline = false;
+  let activeCategory = 'all';
+  let onlyUnlearned = false;
+
+  const main = document.getElementById('main');
+  const noResults = document.getElementById('noResults');
+  const searchInput = document.getElementById('search');
+  const tallyEl = document.getElementById('tally');
+  const unlearnedToggleEl = document.getElementById('unlearnedToggle');
+
+  // ---------- Kết nối Supabase ----------
+  let supabaseClient = null;
+  if (window.supabase && window.supabase.createClient) {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
+
+  async function loadData() {
+    if (!supabaseClient) {
+      useFallback();
+      return;
+    }
+    try {
+      const { data: vocabRows, error: vErr } = await supabaseClient
+        .from('vocab')
+        .select('id, term, ipa, meaning, example_en, example_vi, category')
+        .order('id', { ascending: true });
+      if (vErr) throw vErr;
+
+      const { data: progressRows, error: pErr } = await supabaseClient
+        .from('progress')
+        .select('vocab_id, is_learned, reviewed_count');
+      if (pErr) throw pErr;
+
+      const progressMap = {};
+      (progressRows || []).forEach(p => { progressMap[p.vocab_id] = p; });
+
+      allItems = (vocabRows || []).map(v => ({
+        id: v.id,
+        term: v.term,
+        ipa: v.ipa,
+        meaning: v.meaning,
+        en: v.example_en,
+        vi: v.example_vi,
+        category: v.category,
+        learned: !!(progressMap[v.id] && progressMap[v.id].is_learned),
+        reviewedCount: (progressMap[v.id] && progressMap[v.id].reviewed_count) || 0
+      }));
+
+      if (allItems.length === 0) throw new Error('Bảng vocab trống');
+      offline = false;
+    } catch (err) {
+      console.error('Không kết nối được Supabase, dùng dữ liệu ngoại tuyến:', err);
+      useFallback();
+      return;
+    }
+    updateStatus();
+    render();
+  }
+
+  function useFallback() {
+    offline = true;
+    allItems = FALLBACK_ITEMS.map((it, idx) => ({ id: 'local-' + idx, ...it, learned: false, reviewedCount: 0 }));
+    updateStatus();
+    render();
+  }
+
+  function updateStatus() {
+    const total = allItems.length;
+    tallyEl.innerHTML = `
+      <span>${total} mục · 4 chủ đề</span>
+      <span class="status-dot${offline ? ' offline' : ''}">${offline ? 'Ngoại tuyến — tiến độ không được lưu' : 'Đã đồng bộ'}</span>
+    `;
+  }
+
+  // ---------- Chips lọc chủ đề ----------
+  const chipsWrap = document.getElementById('chips');
+
+  function makeChip(key, label) {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (key === 'all' ? ' active' : '');
+    btn.textContent = label;
+    btn.dataset.key = key;
+    btn.addEventListener('click', () => {
+      activeCategory = key;
+      document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.key === key));
+      render();
+    });
+    return btn;
+  }
+
+  chipsWrap.appendChild(makeChip('all', 'Tất cả'));
+  categoryKeys.forEach(key => chipsWrap.appendChild(makeChip(key, CATEGORY_META[key])));
+
+  unlearnedToggleEl.addEventListener('click', () => {
+    onlyUnlearned = !onlyUnlearned;
+    unlearnedToggleEl.classList.toggle('on', onlyUnlearned);
+    render();
+  });
+
+  // ---------- Render thẻ ----------
+  function cardHTML(item) {
+    return `
+      <div class="card-flip" data-id="${item.id}">
+        <div class="card-inner">
+          <div class="card-face front">
+            <div class="face-top">
+              <div>
+                <div class="headword">${item.term}</div>
+                <div class="ipa">${item.ipa}</div>
+              </div>
+              <button class="speak-btn" data-term="${item.term.replace(/"/g, '&quot;')}" aria-label="Phát âm ${item.term}">&#128266;</button>
+            </div>
+            ${item.learned ? '<div class="learned-badge">&#10003; Đã thuộc</div>' : ''}
+            <div class="hint">chạm để xem nghĩa &rarr;</div>
+          </div>
+          <div class="card-face back">
+            <div class="meaning">${item.meaning}</div>
+            <div class="divider"></div>
+            <div class="example-en">${item.en}</div>
+            <div class="example-vi">${item.vi}</div>
+            <button class="learn-btn${item.learned ? ' is-learned' : ''}" data-id="${item.id}">
+              ${item.learned ? '&#10003; Đã thuộc — bỏ đánh dấu' : 'Đánh dấu đã thuộc'}
+            </button>
+            <div class="hint">chạm để quay lại</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function render() {
+    const query = searchInput.value.trim().toLowerCase();
+    main.querySelectorAll('.section-block').forEach(el => el.remove());
+
+    let shown = 0;
+
+    categoryKeys.forEach(key => {
+      if (activeCategory !== 'all' && activeCategory !== key) return;
+      const items = allItems.filter(it => it.category === key);
+      const filtered = items.filter(it => {
+        if (onlyUnlearned && it.learned) return false;
+        if (!query) return true;
+        return it.term.toLowerCase().includes(query) ||
+               it.meaning.toLowerCase().includes(query) ||
+               it.en.toLowerCase().includes(query);
+      });
+      if (filtered.length === 0) return;
+
+      const section = document.createElement('div');
+      section.className = 'section-block';
+      section.innerHTML = `
+        <h2 class="section-heading">${CATEGORY_META[key]}<span class="section-count">${filtered.length} mục</span></h2>
+        <div class="card-list">
+          ${filtered.map(it => cardHTML(it)).join('')}
+        </div>`;
+      main.appendChild(section);
+      shown += filtered.length;
+    });
+
+    noResults.style.display = shown === 0 ? 'block' : 'none';
+    attachHandlers();
+  }
+
+  function attachHandlers() {
+    main.querySelectorAll('.card-flip').forEach(card => {
+      card.addEventListener('click', () => {
+        const willFlip = !card.classList.contains('flipped');
+        card.classList.toggle('flipped');
+        if (willFlip) recordReview(card.dataset.id);
+      });
+    });
+    main.querySelectorAll('.speak-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        speakTerm(btn, btn.dataset.term);
+      });
+    });
+    main.querySelectorAll('.learn-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleLearned(btn.dataset.id);
+      });
+    });
+  }
+
+  searchInput.addEventListener('input', render);
+
+  // ---------- Đánh dấu đã thuộc ----------
+  async function toggleLearned(id) {
+    const item = allItems.find(it => String(it.id) === String(id));
+    if (!item) return;
+    item.learned = !item.learned;
+    render();
+
+    if (offline || !supabaseClient) return;
+    try {
+      await supabaseClient.from('progress').upsert(
+        { vocab_id: item.id, is_learned: item.learned, last_reviewed: new Date().toISOString() },
+        { onConflict: 'vocab_id' }
+      );
+    } catch (err) {
+      console.error('Không lưu được tiến độ:', err);
+    }
+  }
+
+  // ---------- Ghi nhận lượt ôn tập (best-effort, không chặn giao diện) ----------
+  async function recordReview(id) {
+    if (offline || !supabaseClient) return;
+    const item = allItems.find(it => String(it.id) === String(id));
+    if (!item) return;
+    item.reviewedCount = (item.reviewedCount || 0) + 1;
+    try {
+      await supabaseClient.from('progress').upsert(
+        { vocab_id: item.id, reviewed_count: item.reviewedCount, last_reviewed: new Date().toISOString() },
+        { onConflict: 'vocab_id' }
+      );
+    } catch (err) {
+      console.error('Không ghi nhận được lượt ôn:', err);
+    }
+  }
+
+  // ---------- Phát âm ----------
+  function speakTerm(btn, text) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    document.querySelectorAll('.speak-btn.playing').forEach(b => {
+      b.classList.remove('playing');
+      b.innerHTML = '&#128266;';
+    });
+
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'en-US';
+    utter.rate = 0.9;
+
+    btn.classList.add('playing');
+    btn.innerHTML = '&#9724;';
+
+    utter.onend = utter.onerror = () => {
+      btn.classList.remove('playing');
+      btn.innerHTML = '&#128266;';
+    };
+
+    window.speechSynthesis.speak(utter);
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    if (!('speechSynthesis' in window)) {
+      document.getElementById('ttsNotice').style.display = 'block';
+    }
+    loadData();
+  });
+</script>
+
+</body>
+</html>
