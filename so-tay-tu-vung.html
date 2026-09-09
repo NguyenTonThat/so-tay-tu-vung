@@ -64,6 +64,24 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
+  }
+  .about-link {
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+    font-family: inherit;
+    font-size: 0.72rem;
+    padding: 4px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .about-link:hover, .about-link:focus-visible {
+    background: var(--gold);
+    color: var(--ink);
+    outline: none;
   }
   .eyebrow .ledger-mark {
     width: 18px;
@@ -116,6 +134,169 @@
   .status-dot.offline::before { background: #E0A93B; }
   .status-dot.offline { color: #E0A93B; }
 
+  .auth-bar {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .auth-chip {
+    font-size: 0.8rem;
+    color: var(--paper-dim);
+  }
+  .auth-link-btn {
+    background: transparent;
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+    font-family: inherit;
+    font-size: 0.78rem;
+    padding: 6px 13px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .auth-link-btn:hover, .auth-link-btn:focus-visible {
+    background: var(--gold);
+    color: var(--ink);
+    outline: none;
+  }
+
+  .auth-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(6, 11, 20, 0.72);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .auth-overlay.open { display: flex; }
+  .auth-modal {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 26px 22px 22px;
+    max-width: 360px;
+    width: 100%;
+  }
+  .auth-close {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    background: transparent;
+    border: none;
+    color: var(--paper-dim);
+    font-size: 1.4rem;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .auth-title {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    color: var(--gold);
+    font-size: 1.2rem;
+    margin: 0 0 6px;
+  }
+  .auth-sub {
+    color: var(--paper-dim);
+    font-size: 0.82rem;
+    margin: 0 0 16px;
+    line-height: 1.4;
+  }
+  .auth-input {
+    width: 100%;
+    background: var(--ink);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    color: var(--paper);
+    font-family: inherit;
+    font-size: 0.9rem;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    outline: none;
+  }
+  .auth-input:focus-visible {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.18);
+  }
+  .auth-error {
+    color: #e07a7a;
+    font-size: 0.78rem;
+    min-height: 1em;
+    margin: 0 0 6px;
+  }
+  .auth-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .auth-btn {
+    width: 100%;
+    border-radius: 8px;
+    padding: 10px;
+    font-family: inherit;
+    font-size: 0.88rem;
+    cursor: pointer;
+    border: 1px solid var(--gold-dim);
+    background: transparent;
+    color: var(--gold);
+    transition: background 0.15s, color 0.15s;
+  }
+  .auth-btn.primary {
+    background: var(--gold);
+    color: var(--ink);
+    border-color: var(--gold);
+  }
+  .auth-btn:hover { opacity: 0.9; }
+
+  .about-modal { text-align: center; }
+  .about-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--ink);
+    border: 1px solid var(--gold-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin: 0 auto 14px;
+  }
+  .about-role {
+    color: var(--gold-dim);
+    font-size: 0.8rem;
+    margin: -4px 0 12px;
+  }
+  .about-bio {
+    color: var(--paper);
+    font-size: 0.85rem;
+    line-height: 1.55;
+    margin: 0 0 16px;
+    text-align: left;
+  }
+  .about-links {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+  .about-link-item {
+    color: var(--gold);
+    font-size: 0.8rem;
+    text-decoration: none;
+    border: 1px solid var(--gold-dim);
+    padding: 6px 14px;
+    border-radius: 999px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .about-link-item:hover {
+    background: var(--gold);
+    color: var(--ink);
+  }
+
   /* ---------- Sticky controls ---------- */
   .controls {
     position: sticky;
@@ -159,6 +340,36 @@
     box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.18);
   }
 
+  .chips-wrap-outer {
+    position: relative;
+  }
+  .chips-wrap-outer::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 2px;
+    width: 28px;
+    background: linear-gradient(90deg, transparent, var(--ink));
+    pointer-events: none;
+  }
+  .chips-scroll-track {
+    position: relative;
+    height: 3px;
+    background: var(--rule);
+    border-radius: 999px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+  .chips-scroll-thumb {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: var(--gold);
+    border-radius: 999px;
+    transition: left 0.1s linear;
+  }
   .chips {
     display: flex;
     gap: 8px;
@@ -186,6 +397,70 @@
     color: var(--ink);
     background: var(--gold);
     font-weight: 500;
+  }
+
+  .topic-tabs-wrap-outer {
+    position: relative;
+    margin-bottom: 6px;
+  }
+  .topic-tabs-wrap-outer::after {
+    content: "";
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    bottom: 4px;
+    width: 28px;
+    background: linear-gradient(90deg, transparent, var(--surface));
+    pointer-events: none;
+    border-radius: 0 10px 10px 0;
+  }
+  .topic-tabs {
+    display: flex;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .topic-tabs::-webkit-scrollbar { display: none; }
+  .topic-tab {
+    flex: 0 0 auto;
+    background: transparent;
+    border: none;
+    color: var(--paper-dim);
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 0.95rem;
+    padding: 9px 14px;
+    border-radius: 7px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+  }
+  .topic-tab.active {
+    background: var(--gold);
+    color: var(--ink);
+  }
+  .topic-tab:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .topic-tabs-scroll-track {
+    position: relative;
+    height: 3px;
+    background: var(--rule);
+    border-radius: 999px;
+    margin: 6px 4px 12px;
+    overflow: hidden;
+  }
+  .topic-tabs-scroll-thumb {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: var(--gold);
+    border-radius: 999px;
+    transition: left 0.1s linear;
   }
 
   .toggle-row {
@@ -259,7 +534,7 @@
   .card-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 7px;
   }
 
   /* ---------- Flip card ---------- */
@@ -279,14 +554,14 @@
     grid-area: 1 / 1;
     align-self: stretch;
     backface-visibility: hidden;
-    border-radius: var(--radius);
+    border-radius: 8px;
     border: 1px solid var(--rule);
     background: var(--surface);
-    padding: 16px 16px 14px;
+    padding: 11px 12px 9px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    min-height: 100px;
+    min-height: 64px;
   }
   .card-face.back {
     transform: rotateY(180deg);
@@ -301,44 +576,44 @@
     gap: 10px;
   }
   .headword {
-    font-size: 1.15rem;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--paper);
-    line-height: 1.25;
+    line-height: 1.2;
   }
   .ipa {
     font-family: 'Fraunces', serif;
     font-style: italic;
     color: var(--paper-dim);
-    font-size: 0.85rem;
-    margin-top: 3px;
+    font-size: 0.78rem;
+    margin-top: 2px;
   }
   .hint {
-    font-size: 0.72rem;
+    font-size: 0.66rem;
     color: var(--gold-dim);
     align-self: flex-end;
-    margin-top: 10px;
+    margin-top: 6px;
   }
 
   .learned-badge {
-    font-size: 0.68rem;
+    font-size: 0.63rem;
     color: #4ADE80;
     border: 1px solid rgba(74, 222, 128, 0.4);
     border-radius: 999px;
-    padding: 2px 8px;
+    padding: 1px 7px;
     align-self: flex-start;
-    margin-top: 8px;
+    margin-top: 6px;
   }
 
   .learn-btn {
     align-self: flex-start;
-    margin-top: 10px;
+    margin-top: 7px;
     background: transparent;
     border: 1px solid var(--gold-dim);
     color: var(--gold);
     font-family: inherit;
-    font-size: 0.78rem;
-    padding: 6px 12px;
+    font-size: 0.73rem;
+    padding: 5px 11px;
     border-radius: 999px;
     cursor: pointer;
     transition: background 0.15s, color 0.15s, border-color 0.15s;
@@ -351,8 +626,8 @@
 
   .speak-btn {
     flex: 0 0 auto;
-    width: 30px;
-    height: 30px;
+    width: 25px;
+    height: 25px;
     border-radius: 50%;
     border: 1px solid var(--gold-dim);
     background: transparent;
@@ -361,7 +636,7 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     padding: 0;
     transition: background 0.15s, color 0.15s;
   }
@@ -376,23 +651,23 @@
     font-family: 'Fraunces', serif;
     font-weight: 500;
     color: var(--gold);
-    font-size: 1.05rem;
-    line-height: 1.3;
+    font-size: 0.92rem;
+    line-height: 1.25;
   }
   .divider {
     height: 1px;
     background: var(--rule);
-    margin: 10px 0;
+    margin: 7px 0;
   }
   .example-en {
     font-style: italic;
-    font-size: 0.86rem;
+    font-size: 0.79rem;
     color: var(--paper);
   }
   .example-vi {
-    font-size: 0.8rem;
+    font-size: 0.73rem;
     color: var(--paper-dim);
-    margin-top: 4px;
+    margin-top: 3px;
   }
 
   .no-results {
@@ -435,19 +710,52 @@
 <body>
 
 <div class="hero">
-  <p class="eyebrow"><span class="ledger-mark">£</span>Sổ tay cá nhân</p>
-  <h1 class="brand-title">Từ vựng tiền bạc</h1>
-  <p class="desc">Thành ngữ và từ vựng tiếng Anh về nghèo, giàu, đắt, rẻ — chạm vào mỗi thẻ để xem nghĩa, chạm biểu tượng loa để nghe phát âm.</p>
-  <p class="tally" id="tally"></p>
+  <p class="eyebrow"><span class="ledger-mark">£</span>Sổ tay cá nhân<button class="about-link" id="aboutLink" type="button">Giới thiệu về tôi</button></p>
+  <h1 class="brand-title">Sổ tay từ vựng</h1>
+  <p class="desc">Từ vựng và thành ngữ tiếng Anh theo chủ đề — chạm vào mỗi thẻ để xem nghĩa, chạm biểu tượng loa để nghe phát âm.</p>
+  <p class="tally" id="tally">Đang tải dữ liệu...</p>
+  <div class="auth-bar" id="authBar"></div>
+</div>
+
+<div class="auth-overlay" id="aboutOverlay">
+  <div class="auth-modal about-modal">
+    <button class="auth-close" id="aboutClose" aria-label="Đóng">&times;</button>
+    <div class="about-avatar">👤</div>
+    <h2 class="auth-title" style="text-align:center;">Nguyên Tôn</h2>
+    <p class="about-bio">Trang này giúp thống kê các từ vựng mà tôi hay quên. Từ đó giúp ôn luyện, dạy con và giúp các thành viên trong gia đình phát triển kỹ năng tiếng Anh.<br><br>Chúc mọi người càng ngày càng giỏi!</p>
+    <div class="about-links">
+      <a href="mailto:nguyentonuno@gmail.com" class="about-link-item">nguyentonuno@gmail.com</a>
+    </div>
+  </div>
+</div>
+
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-modal">
+    <button class="auth-close" id="authClose" aria-label="Đóng">&times;</button>
+    <h2 class="auth-title">Đăng nhập để lưu tiến độ</h2>
+    <p class="auth-sub">Đánh dấu "đã thuộc" sẽ được đồng bộ theo tài khoản của bạn trên mọi thiết bị.</p>
+    <input id="authEmail" class="auth-input" type="email" placeholder="Email" autocomplete="email">
+    <input id="authPassword" class="auth-input" type="password" placeholder="Mật khẩu" autocomplete="current-password">
+    <p class="auth-error" id="authError"></p>
+    <div class="auth-buttons">
+      <button class="auth-btn primary" id="authSignIn">Đăng nhập</button>
+      <button class="auth-btn" id="authSignUp">Đăng ký tài khoản mới</button>
+    </div>
+  </div>
 </div>
 
 <div class="controls">
   <div class="controls-inner">
+    <div class="topic-tabs-wrap-outer"><div class="topic-tabs" id="topicTabs"></div></div>
+    <div class="topic-tabs-scroll-track"><div class="topic-tabs-scroll-thumb" id="topicTabsThumb"></div></div>
     <div class="search-wrap">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
       <input id="search" type="text" placeholder="Tìm từ hoặc nghĩa..." autocomplete="off">
     </div>
-    <div class="chips" id="chips"></div>
+    <div class="chips-wrap-outer">
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="chips-scroll-track"><div class="chips-scroll-thumb" id="chipsThumb"></div></div>
     <div class="toggle-row" id="unlearnedToggle">
       <div class="toggle-switch"></div>
       <span class="toggle-label">Chỉ hiện từ chưa thuộc</span>
@@ -469,15 +777,52 @@
   const SUPABASE_URL = 'https://ydwcrxsdtmlhpwbcpyqr.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_0Z-0NwidZO3-VE2K8voAwQ_BL0SKb_5';
 
-  const CATEGORY_META = {
-    poor: 'Nghèo khổ',
-    rich: 'Giàu có',
-    expensive: 'Quá đắt',
-    cheap: 'Quá rẻ'
-  };
-  const categoryKeys = Object.keys(CATEGORY_META);
+  // Cấu trúc chủ đề (topics/categories) được tải động từ Supabase — xem hàm buildMeta()
+  let TOPICS = {};
+  let topicKeys = [];
+  let CATEGORY_TOPIC = {};
+  let CATEGORY_META = {};
 
-  // Dữ liệu dự phòng khi không kết nối được Supabase (chế độ ngoại tuyến)
+  // Danh mục dự phòng khi không kết nối được Supabase (phải khớp với dữ liệu thật trong bảng topics/categories)
+  const FALLBACK_TOPICS = [
+    { key: 'money', label: 'Tiền bạc', sort_order: 1 },
+    { key: 'scent', label: 'Mùi hương', sort_order: 2 },
+    { key: 'time', label: 'Thời gian', sort_order: 3 }
+  ];
+  const FALLBACK_CATEGORIES = [
+    { key: 'poor', label: 'Nghèo khổ', topic_key: 'money', sort_order: 1 },
+    { key: 'rich', label: 'Giàu có', topic_key: 'money', sort_order: 2 },
+    { key: 'expensive', label: 'Quá đắt', topic_key: 'money', sort_order: 3 },
+    { key: 'cheap', label: 'Quá rẻ', topic_key: 'money', sort_order: 4 },
+    { key: 'fragrant', label: 'Thơm', topic_key: 'scent', sort_order: 1 },
+    { key: 'foul', label: 'Thối / hôi', topic_key: 'scent', sort_order: 2 },
+    { key: 'earlier', label: 'Hồi nãy', topic_key: 'time', sort_order: 1 },
+    { key: 'shortly', label: 'Chặp nữa', topic_key: 'time', sort_order: 2 },
+    { key: 'wait', label: 'Đợi chút', topic_key: 'time', sort_order: 3 }
+  ];
+
+  // Xây dựng TOPICS / CATEGORY_META / CATEGORY_TOPIC từ dữ liệu topics + categories (dù lấy từ Supabase hay fallback)
+  function buildMeta(topicsRows, categoriesRows) {
+    TOPICS = {};
+    CATEGORY_TOPIC = {};
+    CATEGORY_META = {};
+
+    const sortedTopics = [...topicsRows].sort((a, b) => a.sort_order - b.sort_order);
+    sortedTopics.forEach(t => {
+      TOPICS[t.key] = { label: t.label, categories: {} };
+    });
+    topicKeys = sortedTopics.map(t => t.key);
+
+    const sortedCats = [...categoriesRows].sort((a, b) => a.sort_order - b.sort_order);
+    sortedCats.forEach(c => {
+      if (!TOPICS[c.topic_key]) return; // bỏ qua category mồ côi nếu topic chưa tồn tại
+      TOPICS[c.topic_key].categories[c.key] = c.label;
+      CATEGORY_TOPIC[c.key] = c.topic_key;
+      CATEGORY_META[c.key] = c.label;
+    });
+  }
+
+  // Dữ liệu từ vựng dự phòng khi không kết nối được Supabase (chế độ ngoại tuyến)
   const FALLBACK_ITEMS = [
     { category: "poor", term: "Dirt poor", ipa: "/dɜːrt pɔːr/", meaning: "Nghèo rớt mồng tơi", en: "Growing up, his family was dirt poor and could barely afford food.", vi: "Lớn lên, gia đình anh ấy nghèo rớt mồng tơi, không đủ tiền mua thức ăn." },
     { category: "poor", term: "Flat broke", ipa: "/flæt broʊk/", meaning: "Không xu dính túi", en: "I can't go out tonight, I'm flat broke until payday.", vi: "Tối nay tôi không đi đâu được, tôi không xu dính túi cho đến ngày lãnh lương." },
@@ -502,11 +847,40 @@
     { category: "cheap", term: "A steal", ipa: "/ə stiːl/", meaning: "Hời, mua như \"ăn cắp\"", en: "At that price, the laptop was a steal.", vi: "Với giá đó, cái laptop này quá hời." },
     { category: "cheap", term: "Bargain-basement", ipa: "/ˈbɑːrɡɪn ˈbeɪsmənt/", meaning: "Giá bèo, rẻ mạt", en: "The store sells bargain-basement electronics that break easily.", vi: "Cửa hàng bán đồ điện tử giá bèo, dễ hỏng." },
     { category: "cheap", term: "Next to nothing", ipa: "/nɛkst tə ˈnʌθɪŋ/", meaning: "Gần như miễn phí", en: "She bought the antique vase for next to nothing at a garage sale.", vi: "Cô ấy mua cái bình cổ với giá gần như miễn phí." },
-    { category: "cheap", term: "Practically giving it away", ipa: "/ˈpræktɪkli ˈɡɪvɪŋ ɪt əˈweɪ/", meaning: "Bán như cho", en: "At $5 a shirt, they're practically giving them away.", vi: "Với giá 5 đô một cái áo, họ bán như cho vậy." }
+    { category: "cheap", term: "Practically giving it away", ipa: "/ˈpræktɪkli ˈɡɪvɪŋ ɪt əˈweɪ/", meaning: "Bán như cho", en: "At $5 a shirt, they're practically giving them away.", vi: "Với giá 5 đô một cái áo, họ bán như cho vậy." },
+    { category: "fragrant", term: "Fragrant", ipa: "/ˈfreɪɡrənt/", meaning: "Thơm ngát, thơm dịu", en: "The garden was fragrant with blooming roses.", vi: "Khu vườn thơm ngát bởi những bông hồng đang nở." },
+    { category: "fragrant", term: "Aromatic", ipa: "/ˌærəˈmætɪk/", meaning: "Thơm nồng (gia vị, cà phê)", en: "The kitchen was filled with the aromatic scent of fresh coffee.", vi: "Nhà bếp tràn ngập mùi thơm nồng của cà phê mới pha." },
+    { category: "fragrant", term: "Sweet-smelling", ipa: "/swiːt ˈsmelɪŋ/", meaning: "Thơm ngọt", en: "She wore a sweet-smelling perfume that lingered in the room.", vi: "Cô ấy dùng loại nước hoa thơm ngọt còn vương lại trong phòng." },
+    { category: "fragrant", term: "Scented", ipa: "/ˈsentɪd/", meaning: "Có mùi thơm (nến, xà phòng)", en: "He lit a scented candle to relax after work.", vi: "Anh ấy thắp một cây nến thơm để thư giãn sau giờ làm." },
+    { category: "fragrant", term: "Fresh", ipa: "/freʃ/", meaning: "Thơm mát, tươi mới", en: "The sheets smelled fresh after being dried in the sun.", vi: "Ga trải giường thơm mát sau khi phơi nắng." },
+    { category: "fragrant", term: "Fruity", ipa: "/ˈfruːti/", meaning: "Thơm mùi trái cây", en: "This shampoo has a fruity scent that lasts all day.", vi: "Dầu gội này có mùi thơm trái cây lưu hương cả ngày." },
+    { category: "foul", term: "Foul-smelling", ipa: "/faʊl ˈsmelɪŋ/", meaning: "Hôi thối", en: "The foul-smelling garbage hadn't been collected for a week.", vi: "Đống rác hôi thối đã cả tuần chưa được thu gom." },
+    { category: "foul", term: "Stinky", ipa: "/ˈstɪŋki/", meaning: "Hôi (thông dụng)", en: "His socks were so stinky that no one wanted to sit near him.", vi: "Đôi tất của anh ấy hôi đến mức không ai muốn ngồi gần." },
+    { category: "foul", term: "Rotten", ipa: "/ˈrɒtn/", meaning: "Thối rữa (thực phẩm hỏng)", en: "The rotten eggs gave off an unbearable smell.", vi: "Những quả trứng thối bốc mùi không thể chịu nổi." },
+    { category: "foul", term: "Rancid", ipa: "/ˈrænsɪd/", meaning: "Ôi (dầu mỡ, bơ để lâu)", en: "The butter had gone rancid after sitting out too long.", vi: "Bơ đã bị ôi sau khi để ngoài quá lâu." },
+    { category: "foul", term: "Musty", ipa: "/ˈmʌsti/", meaning: "Mùi ẩm mốc", en: "The old book had a musty smell from years in storage.", vi: "Cuốn sách cũ có mùi ẩm mốc sau nhiều năm cất giữ." },
+    { category: "foul", term: "Reek (of)", ipa: "/riːk/", meaning: "Bốc mùi nồng nặc", en: "The room reeked of cigarette smoke.", vi: "Căn phòng bốc mùi nồng nặc của khói thuốc." },
+    { category: "earlier", term: "A moment ago", ipa: "/ə ˈmoʊmənt əˈɡoʊ/", meaning: "Hồi nãy, vừa nãy", en: "I saw him a moment ago, he was in the lobby.", vi: "Tôi vừa thấy anh ấy hồi nãy, anh ấy ở sảnh." },
+    { category: "earlier", term: "Just now", ipa: "/dʒʌst naʊ/", meaning: "Vừa mới đây, hồi nãy", en: "She was here just now, but she left.", vi: "Cô ấy vừa ở đây hồi nãy, nhưng đã đi rồi." },
+    { category: "earlier", term: "A little while ago", ipa: "/ə ˈlɪtl waɪl əˈɡoʊ/", meaning: "Cách đây một lát, hồi nãy", en: "He called a little while ago about the meeting.", vi: "Anh ấy gọi hồi nãy về cuộc họp." },
+    { category: "earlier", term: "Earlier", ipa: "/ˈɜːrliər/", meaning: "Trước đó, hồi nãy (trong ngày)", en: "We already discussed this earlier today.", vi: "Chúng ta đã bàn chuyện này hồi nãy trong ngày rồi." },
+    { category: "earlier", term: "A few minutes ago", ipa: "/ə fjuː ˈmɪnɪts əˈɡoʊ/", meaning: "Vài phút trước, hồi nãy", en: "The train left a few minutes ago.", vi: "Chuyến tàu đã rời đi vài phút trước." },
+    { category: "shortly", term: "In a bit", ipa: "/ɪn ə bɪt/", meaning: "Chặp nữa, lát nữa", en: "I'll call you back in a bit.", vi: "Tôi sẽ gọi lại cho bạn chặp nữa." },
+    { category: "shortly", term: "In a little while", ipa: "/ɪn ə ˈlɪtl waɪl/", meaning: "Chặp nữa, một lát nữa", en: "The manager will join us in a little while.", vi: "Quản lý sẽ tham gia cùng chúng ta chặp nữa." },
+    { category: "shortly", term: "In a moment", ipa: "/ɪn ə ˈmoʊmənt/", meaning: "Trong chốc lát, chặp nữa", en: "I'll be right there in a moment.", vi: "Tôi sẽ đến ngay trong chốc lát." },
+    { category: "shortly", term: "Shortly", ipa: "/ˈʃɔːrtli/", meaning: "Chặp nữa, sớm thôi (trang trọng)", en: "The doctor will see you shortly.", vi: "Bác sĩ sẽ khám cho bạn chặp nữa." },
+    { category: "shortly", term: "Before long", ipa: "/bɪˈfɔːr lɔːŋ/", meaning: "Chẳng bao lâu nữa, chặp nữa", en: "Before long, the whole team will know about the plan.", vi: "Chẳng bao lâu nữa, cả đội sẽ biết về kế hoạch." },
+    { category: "wait", term: "Bear with me", ipa: "/bɛr wɪð miː/", meaning: "Đợi chút, thông cảm chờ tôi (trang trọng)", en: "Bear with me while I pull up your file.", vi: "Xin đợi chút trong khi tôi tìm hồ sơ của bạn." },
+    { category: "wait", term: "Just a moment", ipa: "/dʒʌst ə ˈmoʊmənt/", meaning: "Đợi một chút", en: "Just a moment, I'll get the manager.", vi: "Đợi một chút, tôi sẽ gọi quản lý." },
+    { category: "wait", term: "Wait a minute", ipa: "/weɪt ə ˈmɪnɪt/", meaning: "Đợi một phút, khoan đã", en: "Wait a minute, I need to check something first.", vi: "Khoan đã, tôi cần kiểm tra vài thứ trước." },
+    { category: "wait", term: "Give me a second", ipa: "/ɡɪv miː ə ˈsɛkənd/", meaning: "Cho tôi một giây, đợi chút", en: "Give me a second, I'm almost done.", vi: "Đợi chút, tôi sắp xong rồi." },
+    { category: "wait", term: "Hold on", ipa: "/hoʊld ɒn/", meaning: "Đợi chút, giữ máy (điện thoại)", en: "Hold on, let me check the schedule.", vi: "Đợi chút, để tôi kiểm tra lịch." },
+    { category: "wait", term: "Hang on", ipa: "/hæŋ ɒn/", meaning: "Đợi chút (thân mật)", en: "Hang on, I'll be with you in a second.", vi: "Đợi chút, tôi sẽ đến ngay." }
   ];
 
   let allItems = [];
   let offline = false;
+  let activeTopic = null;
   let activeCategory = 'all';
   let onlyUnlearned = false;
 
@@ -518,8 +892,94 @@
 
   // ---------- Kết nối Supabase ----------
   let supabaseClient = null;
+  let currentUser = null;
   if (window.supabase && window.supabase.createClient) {
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
+
+  const authBar = document.getElementById('authBar');
+  const authOverlay = document.getElementById('authOverlay');
+  const authEmail = document.getElementById('authEmail');
+  const authPassword = document.getElementById('authPassword');
+  const authError = document.getElementById('authError');
+
+  function renderAuthUI() {
+    authBar.innerHTML = '';
+    if (currentUser) {
+      const chip = document.createElement('span');
+      chip.className = 'auth-chip';
+      chip.textContent = currentUser.email;
+      const btn = document.createElement('button');
+      btn.className = 'auth-link-btn';
+      btn.textContent = 'Đăng xuất';
+      btn.addEventListener('click', async () => {
+        await supabaseClient.auth.signOut();
+      });
+      authBar.appendChild(chip);
+      authBar.appendChild(btn);
+    } else {
+      const btn = document.createElement('button');
+      btn.className = 'auth-link-btn';
+      btn.textContent = 'Đăng nhập để lưu tiến độ';
+      btn.addEventListener('click', openAuthModal);
+      authBar.appendChild(btn);
+    }
+  }
+
+  function openAuthModal() {
+    authError.textContent = '';
+    authPassword.value = '';
+    authOverlay.classList.add('open');
+    authEmail.focus();
+  }
+  function closeAuthModal() {
+    authOverlay.classList.remove('open');
+  }
+  document.getElementById('authClose').addEventListener('click', closeAuthModal);
+
+  const aboutOverlay = document.getElementById('aboutOverlay');
+  document.getElementById('aboutLink').addEventListener('click', () => {
+    aboutOverlay.classList.add('open');
+  });
+  document.getElementById('aboutClose').addEventListener('click', () => {
+    aboutOverlay.classList.remove('open');
+  });
+  aboutOverlay.addEventListener('click', (e) => {
+    if (e.target === aboutOverlay) aboutOverlay.classList.remove('open');
+  });
+  authOverlay.addEventListener('click', (e) => { if (e.target === authOverlay) closeAuthModal(); });
+
+  document.getElementById('authSignIn').addEventListener('click', async () => {
+    authError.textContent = '';
+    const { error } = await supabaseClient.auth.signInWithPassword({
+      email: authEmail.value.trim(),
+      password: authPassword.value
+    });
+    if (error) { authError.textContent = 'Đăng nhập thất bại: ' + error.message; return; }
+    closeAuthModal();
+  });
+
+  document.getElementById('authSignUp').addEventListener('click', async () => {
+    authError.textContent = '';
+    const { error } = await supabaseClient.auth.signUp({
+      email: authEmail.value.trim(),
+      password: authPassword.value
+    });
+    if (error) { authError.textContent = 'Đăng ký thất bại: ' + error.message; return; }
+    authError.style.color = '#4ADE80';
+    authError.textContent = 'Đăng ký thành công! Kiểm tra email để xác nhận, sau đó đăng nhập.';
+  });
+
+  async function initAuth() {
+    if (!supabaseClient) { renderAuthUI(); return; }
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    currentUser = session ? session.user : null;
+    renderAuthUI();
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+      currentUser = session ? session.user : null;
+      renderAuthUI();
+      loadData();
+    });
   }
 
   async function loadData() {
@@ -528,19 +988,37 @@
       return;
     }
     try {
+      const { data: topicsRows, error: tErr } = await supabaseClient
+        .from('topics')
+        .select('key, label, sort_order');
+      if (tErr) throw tErr;
+
+      const { data: categoriesRows, error: cErr } = await supabaseClient
+        .from('categories')
+        .select('key, label, topic_key, sort_order');
+      if (cErr) throw cErr;
+
+      if (!topicsRows || topicsRows.length === 0) throw new Error('Bảng topics trống');
+      buildMeta(topicsRows, categoriesRows || []);
+
       const { data: vocabRows, error: vErr } = await supabaseClient
         .from('vocab')
         .select('id, term, ipa, meaning, example_en, example_vi, category')
         .order('id', { ascending: true });
       if (vErr) throw vErr;
 
-      const { data: progressRows, error: pErr } = await supabaseClient
-        .from('progress')
-        .select('vocab_id, is_learned, reviewed_count');
-      if (pErr) throw pErr;
+      let progressRows = [];
+      if (currentUser) {
+        const { data: pRows, error: pErr } = await supabaseClient
+          .from('progress')
+          .select('vocab_id, is_learned, reviewed_count')
+          .eq('user_id', currentUser.id);
+        if (pErr) throw pErr;
+        progressRows = pRows || [];
+      }
 
       const progressMap = {};
-      (progressRows || []).forEach(p => { progressMap[p.vocab_id] = p; });
+      progressRows.forEach(p => { progressMap[p.vocab_id] = p; });
 
       allItems = (vocabRows || []).map(v => ({
         id: v.id,
@@ -550,6 +1028,7 @@
         en: v.example_en,
         vi: v.example_vi,
         category: v.category,
+        topic: CATEGORY_TOPIC[v.category],
         learned: !!(progressMap[v.id] && progressMap[v.id].is_learned),
         reviewedCount: (progressMap[v.id] && progressMap[v.id].reviewed_count) || 0
       }));
@@ -561,43 +1040,126 @@
       useFallback();
       return;
     }
+    activeTopic = topicKeys[0];
+    activeCategory = 'all';
+    renderTopicTabs();
+    renderCategoryChips();
     updateStatus();
     render();
   }
 
   function useFallback() {
     offline = true;
-    allItems = FALLBACK_ITEMS.map((it, idx) => ({ id: 'local-' + idx, ...it, learned: false, reviewedCount: 0 }));
+    buildMeta(FALLBACK_TOPICS, FALLBACK_CATEGORIES);
+    allItems = FALLBACK_ITEMS.map((it, idx) => ({ id: 'local-' + idx, ...it, topic: CATEGORY_TOPIC[it.category], learned: false, reviewedCount: 0 }));
+    activeTopic = topicKeys[0];
+    activeCategory = 'all';
+    renderTopicTabs();
+    renderCategoryChips();
     updateStatus();
     render();
   }
 
   function updateStatus() {
     const total = allItems.length;
+    const catCount = Object.keys(CATEGORY_META).length;
     tallyEl.innerHTML = `
-      <span>${total} mục · 4 chủ đề</span>
+      <span>${total} mục · ${topicKeys.length} chủ đề lớn · ${catCount} chủ đề nhỏ</span>
       <span class="status-dot${offline ? ' offline' : ''}">${offline ? 'Ngoại tuyến — tiến độ không được lưu' : 'Đã đồng bộ'}</span>
     `;
   }
 
-  // ---------- Chips lọc chủ đề ----------
+  // ---------- Tabs chủ đề lớn ----------
+  const topicTabsWrap = document.getElementById('topicTabs');
+  const topicTabsThumb = document.getElementById('topicTabsThumb');
+
+  function updateTopicTabsThumb() {
+    const track = document.querySelector('.topic-tabs-scroll-track');
+    const scrollable = topicTabsWrap.scrollWidth > topicTabsWrap.clientWidth + 1;
+    if (!scrollable) {
+      track.style.display = 'none';
+      return;
+    }
+    track.style.display = 'block';
+    const thumbWidthPct = Math.max((topicTabsWrap.clientWidth / topicTabsWrap.scrollWidth) * 100, 10);
+    const maxScroll = topicTabsWrap.scrollWidth - topicTabsWrap.clientWidth;
+    const scrollRatio = maxScroll > 0 ? topicTabsWrap.scrollLeft / maxScroll : 0;
+    const thumbLeftPct = scrollRatio * (100 - thumbWidthPct);
+    topicTabsThumb.style.width = thumbWidthPct + '%';
+    topicTabsThumb.style.left = thumbLeftPct + '%';
+  }
+
+  topicTabsWrap.addEventListener('scroll', updateTopicTabsThumb);
+  window.addEventListener('resize', updateTopicTabsThumb);
+
+  function renderTopicTabs() {
+    topicTabsWrap.innerHTML = '';
+    topicKeys.forEach(key => {
+      const btn = document.createElement('button');
+      btn.className = 'topic-tab' + (key === activeTopic ? ' active' : '');
+      btn.textContent = TOPICS[key].label;
+      btn.dataset.key = key;
+      btn.addEventListener('click', () => {
+        btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        if (activeTopic === key) return;
+        activeTopic = key;
+        activeCategory = 'all';
+        renderTopicTabs();
+        renderCategoryChips();
+        render();
+      });
+      topicTabsWrap.appendChild(btn);
+    });
+    requestAnimationFrame(updateTopicTabsThumb);
+  }
+
+  // ---------- Chips lọc chủ đề nhỏ ----------
   const chipsWrap = document.getElementById('chips');
 
   function makeChip(key, label) {
     const btn = document.createElement('button');
-    btn.className = 'chip' + (key === 'all' ? ' active' : '');
+    btn.className = 'chip' + (key === activeCategory ? ' active' : '');
     btn.textContent = label;
     btn.dataset.key = key;
     btn.addEventListener('click', () => {
       activeCategory = key;
       document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.key === key));
+      btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
       render();
     });
     return btn;
   }
 
-  chipsWrap.appendChild(makeChip('all', 'Tất cả'));
-  categoryKeys.forEach(key => chipsWrap.appendChild(makeChip(key, CATEGORY_META[key])));
+  function renderCategoryChips() {
+    chipsWrap.innerHTML = '';
+    chipsWrap.appendChild(makeChip('all', 'Tất cả'));
+    Object.entries(TOPICS[activeTopic].categories).forEach(([catKey, catLabel]) => {
+      chipsWrap.appendChild(makeChip(catKey, catLabel));
+    });
+    chipsWrap.scrollLeft = 0;
+    requestAnimationFrame(updateChipsThumb);
+  }
+
+  const chipsThumb = document.getElementById('chipsThumb');
+
+  function updateChipsThumb() {
+    const track = document.querySelector('.chips-scroll-track');
+    const scrollable = chipsWrap.scrollWidth > chipsWrap.clientWidth + 1;
+    if (!scrollable) {
+      track.style.display = 'none';
+      return;
+    }
+    track.style.display = 'block';
+    const thumbWidthPct = Math.max((chipsWrap.clientWidth / chipsWrap.scrollWidth) * 100, 10);
+    const maxScroll = chipsWrap.scrollWidth - chipsWrap.clientWidth;
+    const scrollRatio = maxScroll > 0 ? chipsWrap.scrollLeft / maxScroll : 0;
+    const thumbLeftPct = scrollRatio * (100 - thumbWidthPct);
+    chipsThumb.style.width = thumbWidthPct + '%';
+    chipsThumb.style.left = thumbLeftPct + '%';
+  }
+
+  chipsWrap.addEventListener('scroll', updateChipsThumb);
+  window.addEventListener('resize', updateChipsThumb);
 
   unlearnedToggleEl.addEventListener('click', () => {
     onlyUnlearned = !onlyUnlearned;
@@ -614,7 +1176,7 @@
             <div class="face-top">
               <div>
                 <div class="headword">${item.term}</div>
-                <div class="ipa">${item.ipa}</div>
+                ${item.ipa ? `<div class="ipa">${item.ipa}</div>` : ''}
               </div>
               <button class="speak-btn" data-term="${item.term.replace(/"/g, '&quot;')}" aria-label="Phát âm ${item.term}">&#128266;</button>
             </div>
@@ -640,29 +1202,54 @@
     main.querySelectorAll('.section-block').forEach(el => el.remove());
 
     let shown = 0;
+    const searching = query.length > 0;
 
-    categoryKeys.forEach(key => {
-      if (activeCategory !== 'all' && activeCategory !== key) return;
-      const items = allItems.filter(it => it.category === key);
-      const filtered = items.filter(it => {
-        if (onlyUnlearned && it.learned) return false;
-        if (!query) return true;
-        return it.term.toLowerCase().includes(query) ||
-               it.meaning.toLowerCase().includes(query) ||
-               it.en.toLowerCase().includes(query);
+    if (searching) {
+      // Tìm kiếm xuyên suốt toàn bộ database, bỏ qua giới hạn chủ đề lớn/nhỏ đang chọn
+      topicKeys.forEach(topicKey => {
+        Object.keys(TOPICS[topicKey].categories).forEach(key => {
+          const items = allItems.filter(it => it.category === key && it.topic === topicKey);
+          const filtered = items.filter(it => {
+            if (onlyUnlearned && it.learned) return false;
+            return it.term.toLowerCase().includes(query) ||
+                   it.meaning.toLowerCase().includes(query) ||
+                   it.en.toLowerCase().includes(query);
+          });
+          if (filtered.length === 0) return;
+
+          const section = document.createElement('div');
+          section.className = 'section-block';
+          section.innerHTML = `
+            <h2 class="section-heading">${TOPICS[topicKey].label} — ${CATEGORY_META[key]}<span class="section-count">${filtered.length} mục</span></h2>
+            <div class="card-list">
+              ${filtered.map(it => cardHTML(it)).join('')}
+            </div>`;
+          main.appendChild(section);
+          shown += filtered.length;
+        });
       });
-      if (filtered.length === 0) return;
+    } else {
+      const categoryKeysInTopic = Object.keys(TOPICS[activeTopic].categories);
+      categoryKeysInTopic.forEach(key => {
+        if (activeCategory !== 'all' && activeCategory !== key) return;
+        const items = allItems.filter(it => it.category === key && it.topic === activeTopic);
+        const filtered = items.filter(it => {
+          if (onlyUnlearned && it.learned) return false;
+          return true;
+        });
+        if (filtered.length === 0) return;
 
-      const section = document.createElement('div');
-      section.className = 'section-block';
-      section.innerHTML = `
-        <h2 class="section-heading">${CATEGORY_META[key]}<span class="section-count">${filtered.length} mục</span></h2>
-        <div class="card-list">
-          ${filtered.map(it => cardHTML(it)).join('')}
-        </div>`;
-      main.appendChild(section);
-      shown += filtered.length;
-    });
+        const section = document.createElement('div');
+        section.className = 'section-block';
+        section.innerHTML = `
+          <h2 class="section-heading">${CATEGORY_META[key]}<span class="section-count">${filtered.length} mục</span></h2>
+          <div class="card-list">
+            ${filtered.map(it => cardHTML(it)).join('')}
+          </div>`;
+        main.appendChild(section);
+        shown += filtered.length;
+      });
+    }
 
     noResults.style.display = shown === 0 ? 'block' : 'none';
     attachHandlers();
@@ -694,6 +1281,10 @@
 
   // ---------- Đánh dấu đã thuộc ----------
   async function toggleLearned(id) {
+    if (!currentUser) {
+      openAuthModal();
+      return;
+    }
     const item = allItems.find(it => String(it.id) === String(id));
     if (!item) return;
     item.learned = !item.learned;
@@ -702,8 +1293,8 @@
     if (offline || !supabaseClient) return;
     try {
       await supabaseClient.from('progress').upsert(
-        { vocab_id: item.id, is_learned: item.learned, last_reviewed: new Date().toISOString() },
-        { onConflict: 'vocab_id' }
+        { vocab_id: item.id, user_id: currentUser.id, is_learned: item.learned, last_reviewed: new Date().toISOString() },
+        { onConflict: 'vocab_id,user_id' }
       );
     } catch (err) {
       console.error('Không lưu được tiến độ:', err);
@@ -712,14 +1303,14 @@
 
   // ---------- Ghi nhận lượt ôn tập (best-effort, không chặn giao diện) ----------
   async function recordReview(id) {
-    if (offline || !supabaseClient) return;
+    if (offline || !supabaseClient || !currentUser) return;
     const item = allItems.find(it => String(it.id) === String(id));
     if (!item) return;
     item.reviewedCount = (item.reviewedCount || 0) + 1;
     try {
       await supabaseClient.from('progress').upsert(
-        { vocab_id: item.id, reviewed_count: item.reviewedCount, last_reviewed: new Date().toISOString() },
-        { onConflict: 'vocab_id' }
+        { vocab_id: item.id, user_id: currentUser.id, reviewed_count: item.reviewedCount, last_reviewed: new Date().toISOString() },
+        { onConflict: 'vocab_id,user_id' }
       );
     } catch (err) {
       console.error('Không ghi nhận được lượt ôn:', err);
@@ -750,10 +1341,11 @@
     window.speechSynthesis.speak(utter);
   }
 
-  window.addEventListener('DOMContentLoaded', () => {
+  window.addEventListener('DOMContentLoaded', async () => {
     if (!('speechSynthesis' in window)) {
       document.getElementById('ttsNotice').style.display = 'block';
     }
+    await initAuth();
     loadData();
   });
 </script>
