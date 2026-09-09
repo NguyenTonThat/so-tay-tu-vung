@@ -4,6 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Sổ tay từ vựng — Thành ngữ tiền bạc</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16x16.png">
+
+<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180x180.png">
+
+<link rel="manifest" href="site.webmanifest">
+<meta name="theme-color" content="#087CFF">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="NguyênTôn">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -192,6 +203,32 @@
     font-size: 1.4rem;
     cursor: pointer;
     line-height: 1;
+  }
+  .auth-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--ink);
+    border: 1px solid var(--rule);
+    border-radius: 9px;
+    padding: 3px;
+    margin-bottom: 16px;
+  }
+  .auth-tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--paper-dim);
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 0.9rem;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .auth-tab.active {
+    background: var(--gold);
+    color: var(--ink);
   }
   .auth-title {
     font-family: 'Fraunces', serif;
@@ -732,14 +769,17 @@
 <div class="auth-overlay" id="authOverlay">
   <div class="auth-modal">
     <button class="auth-close" id="authClose" aria-label="Đóng">&times;</button>
-    <h2 class="auth-title">Đăng nhập để lưu tiến độ</h2>
-    <p class="auth-sub">Đánh dấu "đã thuộc" sẽ được đồng bộ theo tài khoản của bạn trên mọi thiết bị.</p>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="authTabSignin" data-mode="signin">Đăng nhập</button>
+      <button class="auth-tab" id="authTabSignup" data-mode="signup">Đăng ký</button>
+    </div>
+    <p class="auth-sub" id="authSub">Đánh dấu "đã thuộc" sẽ được đồng bộ theo tài khoản của bạn trên mọi thiết bị.</p>
     <input id="authEmail" class="auth-input" type="email" placeholder="Email" autocomplete="email">
     <input id="authPassword" class="auth-input" type="password" placeholder="Mật khẩu" autocomplete="current-password">
+    <input id="authConfirmPassword" class="auth-input auth-confirm-field" type="password" placeholder="Xác nhận mật khẩu" autocomplete="new-password" style="display:none;">
     <p class="auth-error" id="authError"></p>
     <div class="auth-buttons">
-      <button class="auth-btn primary" id="authSignIn">Đăng nhập</button>
-      <button class="auth-btn" id="authSignUp">Đăng ký tài khoản mới</button>
+      <button class="auth-btn primary" id="authSubmit">Đăng nhập</button>
     </div>
   </div>
 </div>
@@ -926,9 +966,37 @@
     }
   }
 
+  let authMode = 'signin';
+  const authConfirmPassword = document.getElementById('authConfirmPassword');
+  const authSub = document.getElementById('authSub');
+  const authSubmit = document.getElementById('authSubmit');
+  const authTabSignin = document.getElementById('authTabSignin');
+  const authTabSignup = document.getElementById('authTabSignup');
+
+  function setAuthMode(mode) {
+    authMode = mode;
+    authError.textContent = '';
+    authTabSignin.classList.toggle('active', mode === 'signin');
+    authTabSignup.classList.toggle('active', mode === 'signup');
+    if (mode === 'signin') {
+      authSub.textContent = 'Đăng nhập để đồng bộ tiến độ "đã thuộc" trên mọi thiết bị.';
+      authConfirmPassword.style.display = 'none';
+      authSubmit.textContent = 'Đăng nhập';
+    } else {
+      authSub.textContent = 'Tạo tài khoản mới để bắt đầu lưu tiến độ học của riêng bạn.';
+      authConfirmPassword.style.display = 'block';
+      authSubmit.textContent = 'Tạo tài khoản';
+    }
+  }
+
+  authTabSignin.addEventListener('click', () => setAuthMode('signin'));
+  authTabSignup.addEventListener('click', () => setAuthMode('signup'));
+
   function openAuthModal() {
     authError.textContent = '';
     authPassword.value = '';
+    authConfirmPassword.value = '';
+    setAuthMode('signin');
     authOverlay.classList.add('open');
     authEmail.focus();
   }
@@ -949,25 +1017,60 @@
   });
   authOverlay.addEventListener('click', (e) => { if (e.target === authOverlay) closeAuthModal(); });
 
-  document.getElementById('authSignIn').addEventListener('click', async () => {
-    authError.textContent = '';
-    const { error } = await supabaseClient.auth.signInWithPassword({
-      email: authEmail.value.trim(),
-      password: authPassword.value
-    });
-    if (error) { authError.textContent = 'Đăng nhập thất bại: ' + error.message; return; }
-    closeAuthModal();
-  });
+  function validateAuthInput() {
+    const email = authEmail.value.trim();
+    const password = authPassword.value;
+    if (!email || !password) {
+      authError.style.color = '#e07a7a';
+      authError.textContent = 'Vui lòng nhập đầy đủ email và mật khẩu.';
+      return false;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      authError.style.color = '#e07a7a';
+      authError.textContent = 'Email không hợp lệ, vui lòng kiểm tra lại.';
+      return false;
+    }
+    if (password.length < 6) {
+      authError.style.color = '#e07a7a';
+      authError.textContent = 'Mật khẩu cần ít nhất 6 ký tự.';
+      return false;
+    }
+    if (authMode === 'signup' && password !== authConfirmPassword.value) {
+      authError.style.color = '#e07a7a';
+      authError.textContent = 'Mật khẩu xác nhận không khớp.';
+      return false;
+    }
+    return true;
+  }
 
-  document.getElementById('authSignUp').addEventListener('click', async () => {
+  authSubmit.addEventListener('click', async () => {
     authError.textContent = '';
-    const { error } = await supabaseClient.auth.signUp({
-      email: authEmail.value.trim(),
-      password: authPassword.value
-    });
-    if (error) { authError.textContent = 'Đăng ký thất bại: ' + error.message; return; }
-    authError.style.color = '#4ADE80';
-    authError.textContent = 'Đăng ký thành công! Kiểm tra email để xác nhận, sau đó đăng nhập.';
+    if (!validateAuthInput()) return;
+
+    if (authMode === 'signin') {
+      const { error } = await supabaseClient.auth.signInWithPassword({
+        email: authEmail.value.trim(),
+        password: authPassword.value
+      });
+      if (error) {
+        authError.style.color = '#e07a7a';
+        authError.textContent = 'Đăng nhập thất bại: ' + error.message;
+        return;
+      }
+      closeAuthModal();
+    } else {
+      const { error } = await supabaseClient.auth.signUp({
+        email: authEmail.value.trim(),
+        password: authPassword.value
+      });
+      if (error) {
+        authError.style.color = '#e07a7a';
+        authError.textContent = 'Đăng ký thất bại: ' + error.message;
+        return;
+      }
+      authError.style.color = '#4ADE80';
+      authError.textContent = 'Đăng ký thành công! Kiểm tra email để xác nhận, sau đó đăng nhập.';
+    }
   });
 
   async function initAuth() {
