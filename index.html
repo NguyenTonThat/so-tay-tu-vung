@@ -77,8 +77,13 @@
     gap: 8px;
     flex-wrap: wrap;
   }
-  .about-link {
+  .eyebrow-actions {
     margin-left: auto;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .about-link {
     background: transparent;
     border: 1px solid var(--gold-dim);
     color: var(--gold);
@@ -88,6 +93,10 @@
     border-radius: 999px;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
+  }
+  .about-link.active {
+    background: var(--gold);
+    color: var(--ink);
   }
   .about-link:hover, .about-link:focus-visible {
     background: var(--gold);
@@ -436,6 +445,36 @@
     font-weight: 500;
   }
 
+  .view-tabs {
+    display: flex;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--gold-dim);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 12px;
+  }
+  .view-tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--paper-dim);
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 0.85rem;
+    padding: 9px 6px;
+    border-radius: 7px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+  }
+  .view-tab.active {
+    background: var(--gold);
+    color: var(--ink);
+  }
+  .view-tab:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
   .topic-tabs-wrap-outer {
     position: relative;
     margin-bottom: 6px;
@@ -540,6 +579,58 @@
   .toggle-label {
     font-size: 0.85rem;
     color: var(--paper-dim);
+  }
+
+  .status-filters {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-top: 12px;
+  }
+  .status-filters::-webkit-scrollbar { display: none; }
+  .status-chip {
+    flex: 0 0 auto;
+    background: transparent;
+    border: 1px solid var(--rule);
+    color: var(--paper-dim);
+    font-family: inherit;
+    font-size: 0.82rem;
+    padding: 6px 13px;
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .status-chip.active {
+    border-color: var(--gold);
+    color: var(--ink);
+    background: var(--gold);
+    font-weight: 500;
+  }
+  .status-chip:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  .favorite-btn {
+    flex: 0 0 auto;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    border: 1px solid var(--gold-dim);
+    background: transparent;
+    color: var(--gold-dim);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 0;
+    margin-right: 4px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .favorite-btn.is-favorite {
+    background: var(--gold);
+    color: var(--ink);
+    border-color: var(--gold);
   }
   .toggle-row.on .toggle-label { color: var(--paper); }
 
@@ -661,6 +752,12 @@
   }
   .learn-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
+  .face-actions {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
   .speak-btn {
     flex: 0 0 auto;
     width: 25px;
@@ -747,7 +844,13 @@
 <body>
 
 <div class="hero">
-  <p class="eyebrow"><span class="ledger-mark">£</span>Sổ tay cá nhân<button class="about-link" id="aboutLink" type="button">Giới thiệu về tôi</button></p>
+  <p class="eyebrow"><span class="ledger-mark">£</span>Sổ tay cá nhân
+    <span class="eyebrow-actions">
+      <button class="about-link" id="favViewBtn" type="button">★ Yêu thích</button>
+      <button class="about-link" id="learnedViewBtn" type="button">✓ Đã thuộc</button>
+      <button class="about-link" id="aboutLink" type="button">Giới thiệu về tôi</button>
+    </span>
+  </p>
   <h1 class="brand-title">Sổ tay từ vựng</h1>
   <p class="desc">Từ vựng và thành ngữ tiếng Anh theo chủ đề — chạm vào mỗi thẻ để xem nghĩa, chạm biểu tượng loa để nghe phát âm.</p>
   <p class="tally" id="tally">Đang tải dữ liệu...</p>
@@ -786,20 +889,16 @@
 
 <div class="controls">
   <div class="controls-inner">
-    <div class="topic-tabs-wrap-outer"><div class="topic-tabs" id="topicTabs"></div></div>
-    <div class="topic-tabs-scroll-track"><div class="topic-tabs-scroll-thumb" id="topicTabsThumb"></div></div>
+    <div class="topic-tabs-wrap-outer" id="topicTabsWrapOuter"><div class="topic-tabs" id="topicTabs"></div></div>
+    <div class="topic-tabs-scroll-track" id="topicTabsScrollTrack"><div class="topic-tabs-scroll-thumb" id="topicTabsThumb"></div></div>
     <div class="search-wrap">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
       <input id="search" type="text" placeholder="Tìm từ hoặc nghĩa..." autocomplete="off">
     </div>
-    <div class="chips-wrap-outer">
+    <div class="chips-wrap-outer" id="chipsWrapOuter">
       <div class="chips" id="chips"></div>
     </div>
-    <div class="chips-scroll-track"><div class="chips-scroll-thumb" id="chipsThumb"></div></div>
-    <div class="toggle-row" id="unlearnedToggle">
-      <div class="toggle-switch"></div>
-      <span class="toggle-label">Chỉ hiện từ chưa thuộc</span>
-    </div>
+    <div class="chips-scroll-track" id="chipsScrollTrack"><div class="chips-scroll-thumb" id="chipsThumb"></div></div>
   </div>
 </div>
 
@@ -922,13 +1021,46 @@
   let offline = false;
   let activeTopic = null;
   let activeCategory = 'all';
-  let onlyUnlearned = false;
+  let viewMode = 'browse'; // 'browse' | 'favorite' | 'learned'
+
+  const STATE_KEY = 'vocabAppState_v1';
+
+  function saveState() {
+    try {
+      localStorage.setItem(STATE_KEY, JSON.stringify({
+        activeTopic, activeCategory, viewMode,
+        search: searchInput.value,
+        scrollY: window.scrollY
+      }));
+    } catch (e) { /* localStorage có thể bị chặn, bỏ qua */ }
+  }
+
+  function restoreState() {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(STATE_KEY)); } catch (e) { saved = null; }
+
+    activeTopic = (saved && topicKeys.includes(saved.activeTopic)) ? saved.activeTopic : topicKeys[0];
+    const validCats = Object.keys(TOPICS[activeTopic].categories);
+    activeCategory = (saved && (saved.activeCategory === 'all' || validCats.includes(saved.activeCategory))) ? saved.activeCategory : 'all';
+    viewMode = (saved && ['browse', 'favorite', 'learned'].includes(saved.viewMode)) ? saved.viewMode : 'browse';
+    if (saved && saved.search) searchInput.value = saved.search;
+
+    if (saved && typeof saved.scrollY === 'number') {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => window.scrollTo(0, saved.scrollY));
+      });
+    }
+  }
+
+  window.addEventListener('beforeunload', saveState);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') saveState();
+  });
 
   const main = document.getElementById('main');
   const noResults = document.getElementById('noResults');
   const searchInput = document.getElementById('search');
   const tallyEl = document.getElementById('tally');
-  const unlearnedToggleEl = document.getElementById('unlearnedToggle');
 
   // ---------- Kết nối Supabase ----------
   let supabaseClient = null;
@@ -1114,7 +1246,7 @@
       if (currentUser) {
         const { data: pRows, error: pErr } = await supabaseClient
           .from('progress')
-          .select('vocab_id, is_learned, reviewed_count')
+          .select('vocab_id, is_learned, reviewed_count, is_favorite')
           .eq('user_id', currentUser.id);
         if (pErr) throw pErr;
         progressRows = pRows || [];
@@ -1133,6 +1265,7 @@
         category: v.category,
         topic: CATEGORY_TOPIC[v.category],
         learned: !!(progressMap[v.id] && progressMap[v.id].is_learned),
+        favorite: !!(progressMap[v.id] && progressMap[v.id].is_favorite),
         reviewedCount: (progressMap[v.id] && progressMap[v.id].reviewed_count) || 0
       }));
 
@@ -1143,10 +1276,10 @@
       useFallback();
       return;
     }
-    activeTopic = topicKeys[0];
-    activeCategory = 'all';
+    restoreState();
     renderTopicTabs();
     renderCategoryChips();
+    renderViewTabs();
     updateStatus();
     render();
   }
@@ -1154,11 +1287,11 @@
   function useFallback() {
     offline = true;
     buildMeta(FALLBACK_TOPICS, FALLBACK_CATEGORIES);
-    allItems = FALLBACK_ITEMS.map((it, idx) => ({ id: 'local-' + idx, ...it, topic: CATEGORY_TOPIC[it.category], learned: false, reviewedCount: 0 }));
-    activeTopic = topicKeys[0];
-    activeCategory = 'all';
+    allItems = FALLBACK_ITEMS.map((it, idx) => ({ id: 'local-' + idx, ...it, topic: CATEGORY_TOPIC[it.category], learned: false, favorite: false, reviewedCount: 0 }));
+    restoreState();
     renderTopicTabs();
     renderCategoryChips();
+    renderViewTabs();
     updateStatus();
     render();
   }
@@ -1207,6 +1340,7 @@
         if (activeTopic === key) return;
         activeTopic = key;
         activeCategory = 'all';
+        saveState();
         renderTopicTabs();
         renderCategoryChips();
         render();
@@ -1228,6 +1362,7 @@
       activeCategory = key;
       document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.key === key));
       btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      saveState();
       render();
     });
     return btn;
@@ -1241,6 +1376,44 @@
     });
     chipsWrap.scrollLeft = 0;
     requestAnimationFrame(updateChipsThumb);
+  }
+
+  // ---------- Bộ chọn chế độ xem: Yêu thích / Đã thuộc (2 nút nhỏ cạnh Giới thiệu về tôi) ----------
+  const favViewBtn = document.getElementById('favViewBtn');
+  const learnedViewBtn = document.getElementById('learnedViewBtn');
+  const topicTabsWrapOuter = document.getElementById('topicTabsWrapOuter');
+  const topicTabsScrollTrack = document.getElementById('topicTabsScrollTrack');
+  const chipsWrapOuter = document.getElementById('chipsWrapOuter');
+  const chipsScrollTrack = document.getElementById('chipsScrollTrack');
+
+  function setViewMode(mode) {
+    viewMode = (viewMode === mode) ? 'browse' : mode; // bấm lại nút đang bật sẽ quay về duyệt chủ đề
+    renderViewTabs();
+    updateModeVisibility();
+    saveState();
+    render();
+  }
+
+  favViewBtn.addEventListener('click', () => setViewMode('favorite'));
+  learnedViewBtn.addEventListener('click', () => setViewMode('learned'));
+
+  function renderViewTabs() {
+    favViewBtn.classList.toggle('active', viewMode === 'favorite');
+    learnedViewBtn.classList.toggle('active', viewMode === 'learned');
+    updateModeVisibility();
+  }
+
+  function updateModeVisibility() {
+    const isBrowse = viewMode === 'browse';
+    const display = isBrowse ? '' : 'none';
+    topicTabsWrapOuter.style.display = display;
+    topicTabsScrollTrack.style.display = isBrowse ? '' : 'none';
+    chipsWrapOuter.style.display = display;
+    chipsScrollTrack.style.display = isBrowse ? '' : 'none';
+    if (isBrowse) {
+      requestAnimationFrame(updateTopicTabsThumb);
+      requestAnimationFrame(updateChipsThumb);
+    }
   }
 
   const chipsThumb = document.getElementById('chipsThumb');
@@ -1264,12 +1437,6 @@
   chipsWrap.addEventListener('scroll', updateChipsThumb);
   window.addEventListener('resize', updateChipsThumb);
 
-  unlearnedToggleEl.addEventListener('click', () => {
-    onlyUnlearned = !onlyUnlearned;
-    unlearnedToggleEl.classList.toggle('on', onlyUnlearned);
-    render();
-  });
-
   // ---------- Render thẻ ----------
   function cardHTML(item) {
     return `
@@ -1281,7 +1448,10 @@
                 <div class="headword">${item.term}</div>
                 ${item.ipa ? `<div class="ipa">${item.ipa}</div>` : ''}
               </div>
-              <button class="speak-btn" data-term="${item.term.replace(/"/g, '&quot;')}" aria-label="Phát âm ${item.term}">&#128266;</button>
+              <div class="face-actions">
+                <button class="favorite-btn${item.favorite ? ' is-favorite' : ''}" data-id="${item.id}" aria-label="Yêu thích ${item.term}">&#9733;</button>
+                <button class="speak-btn" data-term="${item.term.replace(/"/g, '&quot;')}" aria-label="Phát âm ${item.term}">&#128266;</button>
+              </div>
             </div>
             ${item.learned ? '<div class="learned-badge">&#10003; Đã thuộc</div>' : ''}
             <div class="hint">chạm để xem nghĩa &rarr;</div>
@@ -1305,15 +1475,16 @@
     main.querySelectorAll('.section-block').forEach(el => el.remove());
 
     let shown = 0;
-    const searching = query.length > 0;
 
-    if (searching) {
-      // Tìm kiếm xuyên suốt toàn bộ database, bỏ qua giới hạn chủ đề lớn/nhỏ đang chọn
+    if (viewMode !== 'browse') {
+      // Danh sách riêng: Yêu thích / Đã thuộc — xuyên suốt toàn bộ database, không phụ thuộc chủ đề đang chọn
       topicKeys.forEach(topicKey => {
         Object.keys(TOPICS[topicKey].categories).forEach(key => {
           const items = allItems.filter(it => it.category === key && it.topic === topicKey);
           const filtered = items.filter(it => {
-            if (onlyUnlearned && it.learned) return false;
+            if (viewMode === 'favorite' && !it.favorite) return false;
+            if (viewMode === 'learned' && !it.learned) return false;
+            if (!query) return true;
             return it.term.toLowerCase().includes(query) ||
                    it.meaning.toLowerCase().includes(query) ||
                    it.en.toLowerCase().includes(query);
@@ -1332,26 +1503,49 @@
         });
       });
     } else {
-      const categoryKeysInTopic = Object.keys(TOPICS[activeTopic].categories);
-      categoryKeysInTopic.forEach(key => {
-        if (activeCategory !== 'all' && activeCategory !== key) return;
-        const items = allItems.filter(it => it.category === key && it.topic === activeTopic);
-        const filtered = items.filter(it => {
-          if (onlyUnlearned && it.learned) return false;
-          return true;
-        });
-        if (filtered.length === 0) return;
+      const searching = query.length > 0;
 
-        const section = document.createElement('div');
-        section.className = 'section-block';
-        section.innerHTML = `
-          <h2 class="section-heading">${CATEGORY_META[key]}<span class="section-count">${filtered.length} mục</span></h2>
-          <div class="card-list">
-            ${filtered.map(it => cardHTML(it)).join('')}
-          </div>`;
-        main.appendChild(section);
-        shown += filtered.length;
-      });
+      if (searching) {
+        // Tìm kiếm xuyên suốt toàn bộ database, bỏ qua giới hạn chủ đề lớn/nhỏ đang chọn
+        topicKeys.forEach(topicKey => {
+          Object.keys(TOPICS[topicKey].categories).forEach(key => {
+            const items = allItems.filter(it => it.category === key && it.topic === topicKey);
+            const filtered = items.filter(it => {
+              return it.term.toLowerCase().includes(query) ||
+                     it.meaning.toLowerCase().includes(query) ||
+                     it.en.toLowerCase().includes(query);
+            });
+            if (filtered.length === 0) return;
+
+            const section = document.createElement('div');
+            section.className = 'section-block';
+            section.innerHTML = `
+              <h2 class="section-heading">${TOPICS[topicKey].label} — ${CATEGORY_META[key]}<span class="section-count">${filtered.length} mục</span></h2>
+              <div class="card-list">
+                ${filtered.map(it => cardHTML(it)).join('')}
+              </div>`;
+            main.appendChild(section);
+            shown += filtered.length;
+          });
+        });
+      } else {
+        const categoryKeysInTopic = Object.keys(TOPICS[activeTopic].categories);
+        categoryKeysInTopic.forEach(key => {
+          if (activeCategory !== 'all' && activeCategory !== key) return;
+          const items = allItems.filter(it => it.category === key && it.topic === activeTopic);
+          if (items.length === 0) return;
+
+          const section = document.createElement('div');
+          section.className = 'section-block';
+          section.innerHTML = `
+            <h2 class="section-heading">${CATEGORY_META[key]}<span class="section-count">${items.length} mục</span></h2>
+            <div class="card-list">
+              ${items.map(it => cardHTML(it)).join('')}
+            </div>`;
+          main.appendChild(section);
+          shown += items.length;
+        });
+      }
     }
 
     noResults.style.display = shown === 0 ? 'block' : 'none';
@@ -1378,9 +1572,15 @@
         toggleLearned(btn.dataset.id);
       });
     });
+    main.querySelectorAll('.favorite-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFavorite(btn.dataset.id);
+      });
+    });
   }
 
-  searchInput.addEventListener('input', render);
+  searchInput.addEventListener('input', () => { saveState(); render(); });
 
   // ---------- Đánh dấu đã thuộc ----------
   async function toggleLearned(id) {
@@ -1401,6 +1601,27 @@
       );
     } catch (err) {
       console.error('Không lưu được tiến độ:', err);
+    }
+  }
+
+  async function toggleFavorite(id) {
+    if (!currentUser) {
+      openAuthModal();
+      return;
+    }
+    const item = allItems.find(it => String(it.id) === String(id));
+    if (!item) return;
+    item.favorite = !item.favorite;
+    render();
+
+    if (offline || !supabaseClient) return;
+    try {
+      await supabaseClient.from('progress').upsert(
+        { vocab_id: item.id, user_id: currentUser.id, is_favorite: item.favorite, last_reviewed: new Date().toISOString() },
+        { onConflict: 'vocab_id,user_id' }
+      );
+    } catch (err) {
+      console.error('Không lưu được yêu thích:', err);
     }
   }
 
