@@ -180,6 +180,10 @@
   }
   .status-dot.offline::before { background: #E0A93B; }
   .status-dot.offline { color: #E0A93B; }
+  .due-badge {
+    color: var(--gold);
+    font-weight: 500;
+  }
 
   .auth-bar {
     margin-top: 12px;
@@ -678,6 +682,15 @@
     padding-top: 4px;
   }
   .section-heading:first-of-type { margin-top: 22px; }
+  .section-heading-clickable {
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: var(--gold-dim);
+    text-underline-offset: 3px;
+  }
+  .section-heading-clickable:hover {
+    color: var(--paper);
+  }
   .section-count {
     font-family: 'IBM Plex Sans', sans-serif;
     font-style: normal;
@@ -778,6 +791,32 @@
     color: #4ADE80;
   }
   .learn-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  .srs-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .srs-btn {
+    flex: 1;
+    background: transparent;
+    font-family: inherit;
+    font-size: 0.75rem;
+    padding: 7px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .srs-btn.forget {
+    border: 1px solid #e07a7a;
+    color: #e07a7a;
+  }
+  .srs-btn.forget:hover { background: #e07a7a; color: var(--ink); }
+  .srs-btn.remember {
+    border: 1px solid #4ADE80;
+    color: #4ADE80;
+  }
+  .srs-btn.remember:hover { background: #4ADE80; color: var(--ink); }
 
   .face-actions {
     flex: 0 0 auto;
@@ -1068,7 +1107,7 @@
     activeTopic = (saved && topicKeys.includes(saved.activeTopic)) ? saved.activeTopic : topicKeys[0];
     const validCats = Object.keys(TOPICS[activeTopic].categories);
     activeCategory = (saved && (saved.activeCategory === 'all' || validCats.includes(saved.activeCategory))) ? saved.activeCategory : 'all';
-    viewMode = (saved && ['browse', 'favorite', 'learned', 'unlearned'].includes(saved.viewMode)) ? saved.viewMode : 'browse';
+    viewMode = (saved && ['browse', 'favorite', 'learned', 'unlearned', 'review'].includes(saved.viewMode)) ? saved.viewMode : 'browse';
     if (saved && saved.search) searchInput.value = saved.search;
 
     if (saved && typeof saved.scrollY === 'number') {
@@ -1272,7 +1311,7 @@
       if (currentUser) {
         const { data: pRows, error: pErr } = await supabaseClient
           .from('progress')
-          .select('vocab_id, is_learned, reviewed_count, is_favorite')
+          .select('vocab_id, is_learned, reviewed_count, is_favorite, ease_factor, interval_days, repetitions, next_review_date')
           .eq('user_id', currentUser.id);
         if (pErr) throw pErr;
         progressRows = pRows || [];
@@ -1292,7 +1331,11 @@
         topic: CATEGORY_TOPIC[v.category],
         learned: !!(progressMap[v.id] && progressMap[v.id].is_learned),
         favorite: !!(progressMap[v.id] && progressMap[v.id].is_favorite),
-        reviewedCount: (progressMap[v.id] && progressMap[v.id].reviewed_count) || 0
+        reviewedCount: (progressMap[v.id] && progressMap[v.id].reviewed_count) || 0,
+        ease: (progressMap[v.id] && progressMap[v.id].ease_factor) || 2.5,
+        interval: (progressMap[v.id] && progressMap[v.id].interval_days) || 0,
+        reps: (progressMap[v.id] && progressMap[v.id].repetitions) || 0,
+        nextReview: (progressMap[v.id] && progressMap[v.id].next_review_date) || null
       }));
 
       if (allItems.length === 0) throw new Error('Bảng vocab trống');
@@ -1313,7 +1356,7 @@
   function useFallback() {
     offline = true;
     buildMeta(FALLBACK_TOPICS, FALLBACK_CATEGORIES);
-    allItems = FALLBACK_ITEMS.map((it, idx) => ({ id: 'local-' + idx, ...it, topic: CATEGORY_TOPIC[it.category], learned: false, favorite: false, reviewedCount: 0 }));
+    allItems = FALLBACK_ITEMS.map((it, idx) => ({ id: 'local-' + idx, ...it, topic: CATEGORY_TOPIC[it.category], learned: false, favorite: false, reviewedCount: 0, ease: 2.5, interval: 0, reps: 0, nextReview: null }));
     restoreState();
     renderTopicTabs();
     renderCategoryChips();
@@ -1325,9 +1368,11 @@
   function updateStatus() {
     const total = allItems.length;
     const catCount = Object.keys(CATEGORY_META).length;
+    const dueCount = allItems.filter(it => !it.nextReview || it.nextReview <= todayStr()).length;
     tallyEl.innerHTML = `
       <span>${total} mục · ${topicKeys.length} chủ đề lớn · ${catCount} chủ đề nhỏ</span>
       <span class="status-dot${offline ? ' offline' : ''}">${offline ? 'Ngoại tuyến — tiến độ không được lưu' : 'Đã đồng bộ'}</span>
+      ${dueCount > 0 ? `<span class="due-badge">🔁 ${dueCount} từ cần ôn hôm nay</span>` : ''}
     `;
   }
 
@@ -1358,6 +1403,7 @@
     if (viewMode === 'favorite' && !it.favorite) return false;
     if (viewMode === 'learned' && !it.learned) return false;
     if (viewMode === 'unlearned' && it.learned) return false;
+    if (viewMode === 'review' && it.nextReview && it.nextReview > todayStr()) return false;
     return true;
   }
 
@@ -1440,8 +1486,13 @@
     { key: 'browse', label: 'Tất cả' },
     { key: 'favorite', label: '★ Yêu thích' },
     { key: 'learned', label: '✓ Đã thuộc' },
-    { key: 'unlearned', label: 'Chưa thuộc' }
+    { key: 'unlearned', label: 'Chưa thuộc' },
+    { key: 'review', label: '🔁 Ôn tập' }
   ];
+
+  function todayStr() {
+    return new Date().toISOString().slice(0, 10);
+  }
 
   function setViewMode(mode) {
     viewMode = mode;
@@ -1520,6 +1571,10 @@
             <button class="learn-btn${item.learned ? ' is-learned' : ''}" data-id="${item.id}">
               ${item.learned ? '&#10003; Đã thuộc — bỏ đánh dấu' : 'Đánh dấu đã thuộc'}
             </button>
+            <div class="srs-buttons">
+              <button class="srs-btn forget" data-id="${item.id}">😕 Quên</button>
+              <button class="srs-btn remember" data-id="${item.id}">😊 Nhớ</button>
+            </div>
             <div class="hint">chạm để quay lại</div>
           </div>
         </div>
@@ -1549,7 +1604,7 @@
           const section = document.createElement('div');
           section.className = 'section-block';
           section.innerHTML = `
-            <h2 class="section-heading">${TOPICS[topicKey].label} — ${CATEGORY_META[key]}<span class="section-count">${filtered.length} mục</span></h2>
+            <h2 class="section-heading section-heading-clickable" data-topic="${topicKey}" data-category="${key}">${TOPICS[topicKey].label} — ${CATEGORY_META[key]}<span class="section-count">${filtered.length} mục</span></h2>
             <div class="card-list">
               ${filtered.map(it => cardHTML(it)).join('')}
             </div>`;
@@ -1583,6 +1638,18 @@
   }
 
   function attachHandlers() {
+    main.querySelectorAll('.section-heading-clickable').forEach(heading => {
+      heading.addEventListener('click', () => {
+        activeTopic = heading.dataset.topic;
+        activeCategory = heading.dataset.category;
+        searchInput.value = '';
+        saveState();
+        renderTopicTabs();
+        renderCategoryChips();
+        render();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
     main.querySelectorAll('.card-flip').forEach(card => {
       card.addEventListener('click', () => {
         const willFlip = !card.classList.contains('flipped');
@@ -1606,6 +1673,18 @@
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         toggleFavorite(btn.dataset.id);
+      });
+    });
+    main.querySelectorAll('.srs-btn.remember').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        gradeReview(btn.dataset.id, true);
+      });
+    });
+    main.querySelectorAll('.srs-btn.forget').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        gradeReview(btn.dataset.id, false);
       });
     });
   }
@@ -1652,6 +1731,58 @@
       );
     } catch (err) {
       console.error('Không lưu được yêu thích:', err);
+    }
+  }
+
+  // ---------- Ôn tập ngắt quãng (Spaced Repetition, kiểu SM-2 rút gọn) ----------
+  async function gradeReview(id, remembered) {
+    if (!currentUser) {
+      openAuthModal();
+      return;
+    }
+    const item = allItems.find(it => String(it.id) === String(id));
+    if (!item) return;
+
+    let ease = item.ease || 2.5;
+    let interval = item.interval || 0;
+    let reps = item.reps || 0;
+
+    if (remembered) {
+      reps += 1;
+      if (reps === 1) interval = 1;
+      else if (reps === 2) interval = 6;
+      else interval = Math.round(interval * ease);
+      ease = Math.min(3.0, ease + 0.1);
+    } else {
+      reps = 0;
+      interval = 1;
+      ease = Math.max(1.3, ease - 0.2);
+    }
+
+    const nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + interval);
+    const nextStr = nextDate.toISOString().slice(0, 10);
+
+    item.ease = ease;
+    item.interval = interval;
+    item.reps = reps;
+    item.nextReview = nextStr;
+    renderTopicTabs();
+    renderCategoryChips();
+    render();
+
+    if (offline || !supabaseClient) return;
+    try {
+      await supabaseClient.from('progress').upsert(
+        {
+          vocab_id: item.id, user_id: currentUser.id,
+          ease_factor: ease, interval_days: interval, repetitions: reps,
+          next_review_date: nextStr, last_reviewed: new Date().toISOString()
+        },
+        { onConflict: 'vocab_id,user_id' }
+      );
+    } catch (err) {
+      console.error('Không lưu được lịch ôn tập:', err);
     }
   }
 
