@@ -420,16 +420,6 @@
   .chips-wrap-outer {
     position: relative;
   }
-  .chips-wrap-outer::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 2px;
-    width: 28px;
-    background: linear-gradient(90deg, transparent, var(--ink));
-    pointer-events: none;
-  }
   .chips-scroll-track {
     position: relative;
     height: 3px;
@@ -449,12 +439,13 @@
   }
   .chips {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
+    max-height: 72px;
+    overflow-y: auto;
     padding-bottom: 2px;
+    scrollbar-width: thin;
   }
-  .chips::-webkit-scrollbar { display: none; }
   .chip {
     flex: 0 0 auto;
     background: transparent;
@@ -1432,6 +1423,7 @@
         if (activeTopic === key) return;
         activeTopic = key;
         activeCategory = 'all';
+        searchInput.value = '';
         saveState();
         renderTopicTabs();
         renderCategoryChips();
@@ -1452,6 +1444,7 @@
     btn.dataset.key = key;
     btn.addEventListener('click', () => {
       activeCategory = key;
+      searchInput.value = '';
       document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.key === key));
       btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
       saveState();
@@ -1496,6 +1489,7 @@
 
   function setViewMode(mode) {
     viewMode = mode;
+    searchInput.value = '';
     renderViewTabs();
     renderTopicTabs();
     renderCategoryChips();
