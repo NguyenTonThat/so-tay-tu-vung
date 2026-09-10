@@ -1295,7 +1295,8 @@
       const { data: vocabRows, error: vErr } = await supabaseClient
         .from('vocab')
         .select('id, term, ipa, meaning, example_en, example_vi, category')
-        .order('id', { ascending: true });
+        .order('id', { ascending: true })
+        .range(0, 9999);
       if (vErr) throw vErr;
 
       let progressRows = [];
