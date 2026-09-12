@@ -656,6 +656,69 @@
   }
   .toggle-row.on .toggle-label { color: var(--paper); }
 
+  .admin-label {
+    display: block;
+    color: var(--gold-dim);
+    font-size: 0.75rem;
+    margin: 8px 0 4px;
+  }
+  .admin-modal { max-width: 420px; }
+  .swipe-wrapper {
+    position: relative;
+    overflow: hidden;
+    border-radius: 14px;
+  }
+  .swipe-action {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--ink);
+    border-radius: 14px;
+  }
+  .swipe-edit {
+    left: 0;
+    background: var(--gold);
+  }
+  .swipe-delete {
+    right: 0;
+    background: #e07a7a;
+  }
+  .swipe-wrapper .card-flip {
+    position: relative;
+    z-index: 1;
+    background: var(--ink);
+    touch-action: pan-y;
+  }
+
+  .admin-fab {
+    position: fixed;
+    bottom: 22px;
+    right: 22px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: var(--ink);
+    border: none;
+    font-size: 1.6rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+    z-index: 60;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .admin-fab.visible { display: flex; }
+
   /* ---------- Content ---------- */
   main {
     max-width: var(--max-w);
@@ -903,6 +966,7 @@
 <div class="hero">
   <p class="eyebrow"><span class="ledger-mark">£</span>Sổ tay cá nhân
     <span class="eyebrow-actions">
+      <button class="about-link" id="adminToggleBtn" type="button" style="display:none;">🛠 Admin</button>
       <button class="about-link" id="aboutLink" type="button">Giới thiệu về tôi</button>
     </span>
   </p>
@@ -911,6 +975,29 @@
   <p class="desc">Từ vựng và thành ngữ tiếng Anh theo chủ đề — chạm vào mỗi thẻ để xem nghĩa, chạm biểu tượng loa để nghe phát âm.</p>
   <p class="tally" id="tally">Đang tải dữ liệu...</p>
   <div class="auth-bar" id="authBar"></div>
+</div>
+
+<div class="auth-overlay" id="adminOverlay">
+  <div class="auth-modal admin-modal">
+    <button class="auth-close" id="adminModalClose" aria-label="Đóng">&times;</button>
+    <h2 class="auth-title" id="adminModalTitle">Thêm từ mới</h2>
+    <label class="admin-label">Chủ đề nhỏ</label>
+    <select id="adminCategorySelect" class="auth-input"></select>
+    <label class="admin-label">Từ / Cụm từ (term)</label>
+    <input id="adminTerm" class="auth-input" type="text" placeholder="Ví dụ: Scorching (= very hot)">
+    <label class="admin-label">Phiên âm (IPA) — không bắt buộc</label>
+    <input id="adminIpa" class="auth-input" type="text" placeholder="/ˈskɔːrtʃɪŋ/">
+    <label class="admin-label">Nghĩa tiếng Việt</label>
+    <input id="adminMeaning" class="auth-input" type="text" placeholder="Nóng như thiêu">
+    <label class="admin-label">Ví dụ tiếng Anh — không bắt buộc</label>
+    <input id="adminExampleEn" class="auth-input" type="text" placeholder="It was scorching today.">
+    <label class="admin-label">Ví dụ tiếng Việt — không bắt buộc</label>
+    <input id="adminExampleVi" class="auth-input" type="text" placeholder="Hôm nay trời nóng như thiêu.">
+    <p class="auth-error" id="adminModalError"></p>
+    <div class="auth-buttons">
+      <button class="auth-btn primary" id="adminSaveBtn">Lưu</button>
+    </div>
+  </div>
 </div>
 
 <div class="auth-overlay" id="aboutOverlay">
@@ -965,6 +1052,8 @@
 </main>
 
 <footer>Sổ tay từ vựng · cập nhật thêm khi học từ mới</footer>
+
+<button class="admin-fab" id="adminFab" title="Thêm từ mới">+</button>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
@@ -1121,6 +1210,9 @@
   // ---------- Kết nối Supabase ----------
   let supabaseClient = null;
   let currentUser = null;
+  const ADMIN_EMAIL = 'nguyentonuno@gmail.com';
+  let isAdmin = false;
+  let adminMode = false;
   if (window.supabase && window.supabase.createClient) {
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   }
@@ -1130,9 +1222,17 @@
   const authEmail = document.getElementById('authEmail');
   const authPassword = document.getElementById('authPassword');
   const authError = document.getElementById('authError');
+  const adminToggleBtn = document.getElementById('adminToggleBtn');
+  const adminFab = document.getElementById('adminFab');
 
   function renderAuthUI() {
     authBar.innerHTML = '';
+    isAdmin = !!(currentUser && currentUser.email === ADMIN_EMAIL);
+    adminToggleBtn.style.display = isAdmin ? '' : 'none';
+    if (!isAdmin) { adminMode = false; }
+    adminToggleBtn.classList.toggle('active', adminMode);
+    adminFab.classList.toggle('visible', isAdmin && adminMode);
+
     if (currentUser) {
       const chip = document.createElement('span');
       chip.className = 'auth-chip';
@@ -1153,6 +1253,13 @@
       authBar.appendChild(btn);
     }
   }
+
+  adminToggleBtn.addEventListener('click', () => {
+    adminMode = !adminMode;
+    adminToggleBtn.classList.toggle('active', adminMode);
+    adminFab.classList.toggle('visible', isAdmin && adminMode);
+    render();
+  });
 
   let authMode = 'signin';
   const authConfirmPassword = document.getElementById('authConfirmPassword');
@@ -1541,7 +1648,7 @@
 
   // ---------- Render thẻ ----------
   function cardHTML(item) {
-    return `
+    const cardInner = `
       <div class="card-flip" data-id="${item.id}">
         <div class="card-inner">
           <div class="card-face front">
@@ -1574,6 +1681,16 @@
           </div>
         </div>
       </div>`;
+
+    if (isAdmin && adminMode) {
+      return `
+      <div class="swipe-wrapper" data-id="${item.id}">
+        <div class="swipe-action swipe-edit">✏️<br>Sửa</div>
+        <div class="swipe-action swipe-delete">🗑️<br>Xóa</div>
+        ${cardInner}
+      </div>`;
+    }
+    return cardInner;
   }
 
   function render() {
@@ -1647,6 +1764,7 @@
     });
     main.querySelectorAll('.card-flip').forEach(card => {
       card.addEventListener('click', () => {
+        if (card._suppressClick) return;
         const willFlip = !card.classList.contains('flipped');
         card.classList.toggle('flipped');
         if (willFlip) recordReview(card.dataset.id);
@@ -1682,6 +1800,57 @@
         gradeReview(btn.dataset.id, false);
       });
     });
+    main.querySelectorAll('.swipe-wrapper').forEach(attachSwipeGesture);
+  }
+
+  function attachSwipeGesture(wrapper) {
+    const card = wrapper.querySelector('.card-flip');
+    const id = wrapper.dataset.id;
+    const THRESHOLD = 90;
+    let startX = 0, startY = 0, currentX = 0, dragging = false, decided = false, isHorizontal = false;
+
+    wrapper.addEventListener('pointerdown', (e) => {
+      startX = e.clientX; startY = e.clientY; currentX = 0;
+      dragging = true; decided = false; isHorizontal = false;
+      card.style.transition = 'none';
+    });
+
+    wrapper.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      if (!decided && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+        decided = true;
+        isHorizontal = Math.abs(dx) > Math.abs(dy);
+      }
+      if (isHorizontal) {
+        currentX = dx;
+        card.style.transform = `translateX(${dx}px)`;
+        card._suppressClick = true;
+      }
+    });
+
+    function endDrag() {
+      if (!dragging) return;
+      dragging = false;
+      card.style.transition = 'transform 0.2s ease';
+      if (isHorizontal && Math.abs(currentX) > THRESHOLD) {
+        if (currentX < 0) {
+          card.style.transform = 'translateX(-100%)';
+          setTimeout(() => deleteVocabItem(id), 150);
+        } else {
+          card.style.transform = 'translateX(0)';
+          openAdminModal(id);
+        }
+      } else {
+        card.style.transform = 'translateX(0)';
+      }
+      setTimeout(() => { card._suppressClick = false; }, 50);
+    }
+
+    wrapper.addEventListener('pointerup', endDrag);
+    wrapper.addEventListener('pointercancel', endDrag);
+    wrapper.addEventListener('pointerleave', () => { if (dragging) endDrag(); });
   }
 
   searchInput.addEventListener('input', () => { saveState(); render(); });
@@ -1778,6 +1947,138 @@
       );
     } catch (err) {
       console.error('Không lưu được lịch ôn tập:', err);
+    }
+  }
+
+  // ---------- Admin: thêm / sửa / xóa từ vựng ----------
+  const adminOverlay = document.getElementById('adminOverlay');
+  const adminModalTitle = document.getElementById('adminModalTitle');
+  const adminCategorySelect = document.getElementById('adminCategorySelect');
+  const adminTerm = document.getElementById('adminTerm');
+  const adminIpa = document.getElementById('adminIpa');
+  const adminMeaning = document.getElementById('adminMeaning');
+  const adminExampleEn = document.getElementById('adminExampleEn');
+  const adminExampleVi = document.getElementById('adminExampleVi');
+  const adminModalError = document.getElementById('adminModalError');
+  const adminSaveBtn = document.getElementById('adminSaveBtn');
+  let editingItemId = null;
+
+  function populateAdminCategorySelect(preselectKey) {
+    adminCategorySelect.innerHTML = '';
+    topicKeys.forEach(tKey => {
+      const optgroup = document.createElement('optgroup');
+      optgroup.label = TOPICS[tKey].label;
+      Object.entries(TOPICS[tKey].categories).forEach(([cKey, cLabel]) => {
+        const opt = document.createElement('option');
+        opt.value = cKey;
+        opt.textContent = cLabel;
+        optgroup.appendChild(opt);
+      });
+      adminCategorySelect.appendChild(optgroup);
+    });
+    if (preselectKey) adminCategorySelect.value = preselectKey;
+  }
+
+  function openAdminModal(id) {
+    adminModalError.textContent = '';
+    if (id) {
+      const item = allItems.find(it => String(it.id) === String(id));
+      if (!item) return;
+      editingItemId = id;
+      adminModalTitle.textContent = 'Sửa từ';
+      populateAdminCategorySelect(item.category);
+      adminTerm.value = item.term || '';
+      adminIpa.value = item.ipa || '';
+      adminMeaning.value = item.meaning || '';
+      adminExampleEn.value = item.en || '';
+      adminExampleVi.value = item.vi || '';
+    } else {
+      editingItemId = null;
+      adminModalTitle.textContent = 'Thêm từ mới';
+      const defaultCat = (activeCategory !== 'all') ? activeCategory : Object.keys(TOPICS[activeTopic].categories)[0];
+      populateAdminCategorySelect(defaultCat);
+      adminTerm.value = '';
+      adminIpa.value = '';
+      adminMeaning.value = '';
+      adminExampleEn.value = '';
+      adminExampleVi.value = '';
+    }
+    adminOverlay.classList.add('open');
+    adminTerm.focus();
+  }
+
+  function closeAdminModal() {
+    adminOverlay.classList.remove('open');
+  }
+  document.getElementById('adminModalClose').addEventListener('click', closeAdminModal);
+  adminOverlay.addEventListener('click', (e) => { if (e.target === adminOverlay) closeAdminModal(); });
+  adminFab.addEventListener('click', () => openAdminModal(null));
+
+  adminSaveBtn.addEventListener('click', async () => {
+    if (!isAdmin || !supabaseClient) return;
+    const term = adminTerm.value.trim();
+    const meaning = adminMeaning.value.trim();
+    const category = adminCategorySelect.value;
+    if (!term || !meaning || !category) {
+      adminModalError.textContent = 'Vui lòng nhập đủ Từ/cụm từ, Nghĩa và chọn Chủ đề nhỏ.';
+      return;
+    }
+    const payload = {
+      term,
+      ipa: adminIpa.value.trim() || null,
+      meaning,
+      example_en: adminExampleEn.value.trim() || null,
+      example_vi: adminExampleVi.value.trim() || null,
+      category
+    };
+    try {
+      if (editingItemId) {
+        const { error } = await supabaseClient.from('vocab').update(payload).eq('id', editingItemId);
+        if (error) throw error;
+        const item = allItems.find(it => String(it.id) === String(editingItemId));
+        if (item) {
+          item.term = term; item.ipa = payload.ipa; item.meaning = meaning;
+          item.en = payload.example_en; item.vi = payload.example_vi;
+          item.category = category; item.topic = CATEGORY_TOPIC[category];
+        }
+      } else {
+        const { data, error } = await supabaseClient.from('vocab').insert(payload).select();
+        if (error) throw error;
+        const newRow = data && data[0];
+        if (newRow) {
+          allItems.push({
+            id: newRow.id, term: newRow.term, ipa: newRow.ipa, meaning: newRow.meaning,
+            en: newRow.example_en, vi: newRow.example_vi, category: newRow.category,
+            topic: CATEGORY_TOPIC[newRow.category],
+            learned: false, favorite: false, reviewedCount: 0, ease: 2.5, interval: 0, reps: 0, nextReview: null
+          });
+        }
+      }
+      closeAdminModal();
+      renderTopicTabs();
+      renderCategoryChips();
+      updateStatus();
+      render();
+    } catch (err) {
+      console.error(err);
+      adminModalError.textContent = 'Lỗi khi lưu: ' + (err.message || 'không xác định');
+    }
+  });
+
+  async function deleteVocabItem(id) {
+    if (!isAdmin || !supabaseClient) return;
+    if (!confirm('Xóa hẳn từ này khỏi database? Không thể hoàn tác.')) return;
+    try {
+      const { error } = await supabaseClient.from('vocab').delete().eq('id', id);
+      if (error) throw error;
+      allItems = allItems.filter(it => String(it.id) !== String(id));
+      renderTopicTabs();
+      renderCategoryChips();
+      updateStatus();
+      render();
+    } catch (err) {
+      console.error(err);
+      alert('Không xóa được: ' + (err.message || 'lỗi không xác định'));
     }
   }
 
