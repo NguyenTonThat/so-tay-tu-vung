@@ -1,0 +1,23 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    # Chạy lúc 3:00 UTC (~10:00 sáng giờ Việt Nam) vào thứ Hai và thứ Sáu hàng tuần
+    - cron: '0 3 * * 1,5'
+  workflow_dispatch: {}  # cho phép bấm chạy thủ công để kiểm tra
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gửi truy vấn nhẹ tới Supabase để giữ project không bị pause
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/topics?select=key&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_KEY }}")
+          echo "Mã phản hồi HTTP: $code"
+          if [ "$code" -ge 400 ]; then
+            echo "Truy vấn thất bại, kiểm tra lại secrets hoặc project Supabase."
+            exit 1
+          fi
