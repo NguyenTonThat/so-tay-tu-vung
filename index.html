@@ -180,10 +180,6 @@
   }
   .status-dot.offline::before { background: #E0A93B; }
   .status-dot.offline { color: #E0A93B; }
-  .due-badge {
-    color: var(--gold);
-    font-weight: 500;
-  }
 
   .auth-bar {
     margin-top: 12px;
@@ -634,8 +630,8 @@
 
   .favorite-btn {
     flex: 0 0 auto;
-    width: 25px;
-    height: 25px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
     border: 1px solid var(--gold-dim);
     background: transparent;
@@ -644,7 +640,7 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: 1.15rem;
     padding: 0;
     margin-right: 4px;
     transition: background 0.15s, color 0.15s;
@@ -846,32 +842,6 @@
   }
   .learn-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
-  .srs-buttons {
-    display: flex;
-    gap: 8px;
-    margin-top: 8px;
-  }
-  .srs-btn {
-    flex: 1;
-    background: transparent;
-    font-family: inherit;
-    font-size: 0.75rem;
-    padding: 7px 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-  }
-  .srs-btn.forget {
-    border: 1px solid #e07a7a;
-    color: #e07a7a;
-  }
-  .srs-btn.forget:hover { background: #e07a7a; color: var(--ink); }
-  .srs-btn.remember {
-    border: 1px solid #4ADE80;
-    color: #4ADE80;
-  }
-  .srs-btn.remember:hover { background: #4ADE80; color: var(--ink); }
-
   .face-actions {
     flex: 0 0 auto;
     display: flex;
@@ -880,8 +850,8 @@
   }
   .speak-btn {
     flex: 0 0 auto;
-    width: 25px;
-    height: 25px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
     border: 1px solid var(--gold-dim);
     background: transparent;
@@ -890,7 +860,7 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 0.75rem;
+    font-size: 1.1rem;
     padding: 0;
     transition: background 0.15s, color 0.15s;
   }
@@ -1187,7 +1157,7 @@
     activeTopic = (saved && topicKeys.includes(saved.activeTopic)) ? saved.activeTopic : topicKeys[0];
     const validCats = Object.keys(TOPICS[activeTopic].categories);
     activeCategory = (saved && (saved.activeCategory === 'all' || validCats.includes(saved.activeCategory))) ? saved.activeCategory : 'all';
-    viewMode = (saved && ['browse', 'favorite', 'learned', 'unlearned', 'review'].includes(saved.viewMode)) ? saved.viewMode : 'browse';
+    viewMode = (saved && ['browse', 'favorite', 'learned', 'unlearned'].includes(saved.viewMode)) ? saved.viewMode : 'browse';
     if (saved && saved.search) searchInput.value = saved.search;
 
     if (saved && typeof saved.scrollY === 'number') {
@@ -1380,82 +1350,101 @@
     });
   }
 
+  let dataFullyLoaded = false;
+
+  function vocabRowToItem(v, progressMap) {
+    return {
+      id: v.id,
+      term: v.term,
+      ipa: v.ipa,
+      meaning: v.meaning,
+      en: v.example_en,
+      vi: v.example_vi,
+      category: v.category,
+      topic: CATEGORY_TOPIC[v.category],
+      learned: !!(progressMap[v.id] && progressMap[v.id].is_learned),
+      favorite: !!(progressMap[v.id] && progressMap[v.id].is_favorite),
+      reviewedCount: (progressMap[v.id] && progressMap[v.id].reviewed_count) || 0
+    };
+  }
+
   async function loadData() {
     if (!supabaseClient) {
       useFallback();
       return;
     }
+    let activeCatKeys = [];
     try {
-      const { data: topicsRows, error: tErr } = await supabaseClient
-        .from('topics')
-        .select('key, label, sort_order');
+      // GIAI ĐOẠN 1: chỉ tải topics + categories (nhỏ, nhanh) để biết chủ đề nào cần hiện trước
+      const [
+        { data: topicsRows, error: tErr },
+        { data: categoriesRows, error: cErr }
+      ] = await Promise.all([
+        supabaseClient.from('topics').select('key, label, sort_order'),
+        supabaseClient.from('categories').select('key, label, topic_key, sort_order')
+      ]);
       if (tErr) throw tErr;
-
-      const { data: categoriesRows, error: cErr } = await supabaseClient
-        .from('categories')
-        .select('key, label, topic_key, sort_order');
       if (cErr) throw cErr;
-
       if (!topicsRows || topicsRows.length === 0) throw new Error('Bảng topics trống');
       buildMeta(topicsRows, categoriesRows || []);
+      restoreState();
+      activeCatKeys = Object.keys(TOPICS[activeTopic].categories);
 
-      const { data: vocabRows, error: vErr } = await supabaseClient
-        .from('vocab')
-        .select('id, term, ipa, meaning, example_en, example_vi, category')
-        .order('id', { ascending: true })
-        .range(0, 9999);
+      // GIAI ĐOẠN 2: tải NGAY từ vựng của đúng chủ đề đang xem + tiến độ cá nhân, để hiện ra sớm nhất có thể
+      const [
+        { data: firstVocabRows, error: vErr },
+        { data: progressRows, error: pErr }
+      ] = await Promise.all([
+        supabaseClient.from('vocab')
+          .select('id, term, ipa, meaning, example_en, example_vi, category')
+          .in('category', activeCatKeys),
+        currentUser
+          ? supabaseClient.from('progress').select('vocab_id, is_learned, reviewed_count, is_favorite').eq('user_id', currentUser.id)
+          : Promise.resolve({ data: [], error: null })
+      ]);
       if (vErr) throw vErr;
-
-      let progressRows = [];
-      if (currentUser) {
-        const { data: pRows, error: pErr } = await supabaseClient
-          .from('progress')
-          .select('vocab_id, is_learned, reviewed_count, is_favorite, ease_factor, interval_days, repetitions, next_review_date')
-          .eq('user_id', currentUser.id);
-        if (pErr) throw pErr;
-        progressRows = pRows || [];
-      }
+      if (pErr) throw pErr;
 
       const progressMap = {};
-      progressRows.forEach(p => { progressMap[p.vocab_id] = p; });
-
-      allItems = (vocabRows || []).map(v => ({
-        id: v.id,
-        term: v.term,
-        ipa: v.ipa,
-        meaning: v.meaning,
-        en: v.example_en,
-        vi: v.example_vi,
-        category: v.category,
-        topic: CATEGORY_TOPIC[v.category],
-        learned: !!(progressMap[v.id] && progressMap[v.id].is_learned),
-        favorite: !!(progressMap[v.id] && progressMap[v.id].is_favorite),
-        reviewedCount: (progressMap[v.id] && progressMap[v.id].reviewed_count) || 0,
-        ease: (progressMap[v.id] && progressMap[v.id].ease_factor) || 2.5,
-        interval: (progressMap[v.id] && progressMap[v.id].interval_days) || 0,
-        reps: (progressMap[v.id] && progressMap[v.id].repetitions) || 0,
-        nextReview: (progressMap[v.id] && progressMap[v.id].next_review_date) || null
-      }));
-
-      if (allItems.length === 0) throw new Error('Bảng vocab trống');
+      (progressRows || []).forEach(p => { progressMap[p.vocab_id] = p; });
+      allItems = (firstVocabRows || []).map(v => vocabRowToItem(v, progressMap));
       offline = false;
+
+      renderTopicTabs();
+      renderCategoryChips();
+      renderViewTabs();
+      updateStatus();
+      render();
+
+      // GIAI ĐOẠN 3: âm thầm tải phần từ vựng còn lại (các chủ đề khác) ở phía sau, không chặn giao diện
+      supabaseClient.from('vocab')
+        .select('id, term, ipa, meaning, example_en, example_vi, category')
+        .not('category', 'in', `(${activeCatKeys.map(k => `"${k}"`).join(',')})`)
+        .order('id', { ascending: true })
+        .range(0, 9999)
+        .then(({ data: restRows, error: rErr }) => {
+          if (rErr) { console.error('Không tải được phần dữ liệu còn lại:', rErr); return; }
+          const existingIds = new Set(allItems.map(it => String(it.id)));
+          (restRows || []).forEach(v => {
+            if (!existingIds.has(String(v.id))) allItems.push(vocabRowToItem(v, progressMap));
+          });
+          dataFullyLoaded = true;
+          renderTopicTabs();
+          renderCategoryChips();
+          updateStatus();
+          render();
+        });
     } catch (err) {
       console.error('Không kết nối được Supabase, dùng dữ liệu ngoại tuyến:', err);
       useFallback();
       return;
     }
-    restoreState();
-    renderTopicTabs();
-    renderCategoryChips();
-    renderViewTabs();
-    updateStatus();
-    render();
   }
 
   function useFallback() {
     offline = true;
     buildMeta(FALLBACK_TOPICS, FALLBACK_CATEGORIES);
-    allItems = FALLBACK_ITEMS.map((it, idx) => ({ id: 'local-' + idx, ...it, topic: CATEGORY_TOPIC[it.category], learned: false, favorite: false, reviewedCount: 0, ease: 2.5, interval: 0, reps: 0, nextReview: null }));
+    allItems = FALLBACK_ITEMS.map((it, idx) => ({ id: 'local-' + idx, ...it, topic: CATEGORY_TOPIC[it.category], learned: false, favorite: false, reviewedCount: 0 }));
     restoreState();
     renderTopicTabs();
     renderCategoryChips();
@@ -1467,11 +1456,9 @@
   function updateStatus() {
     const total = allItems.length;
     const catCount = Object.keys(CATEGORY_META).length;
-    const dueCount = allItems.filter(it => !it.nextReview || it.nextReview <= todayStr()).length;
     tallyEl.innerHTML = `
       <span>${total} mục · ${topicKeys.length} chủ đề lớn · ${catCount} chủ đề nhỏ</span>
       <span class="status-dot${offline ? ' offline' : ''}">${offline ? 'Ngoại tuyến — tiến độ không được lưu' : 'Đã đồng bộ'}</span>
-      ${dueCount > 0 ? `<span class="due-badge">🔁 ${dueCount} từ cần ôn hôm nay</span>` : ''}
     `;
   }
 
@@ -1502,7 +1489,6 @@
     if (viewMode === 'favorite' && !it.favorite) return false;
     if (viewMode === 'learned' && !it.learned) return false;
     if (viewMode === 'unlearned' && it.learned) return false;
-    if (viewMode === 'review' && it.nextReview && it.nextReview > todayStr()) return false;
     return true;
   }
 
@@ -1587,13 +1573,8 @@
     { key: 'browse', label: 'Tất cả' },
     { key: 'favorite', label: '★ Yêu thích' },
     { key: 'learned', label: '✓ Đã thuộc' },
-    { key: 'unlearned', label: 'Chưa thuộc' },
-    { key: 'review', label: '🔁 Ôn tập' }
+    { key: 'unlearned', label: 'Chưa thuộc' }
   ];
-
-  function todayStr() {
-    return new Date().toISOString().slice(0, 10);
-  }
 
   function setViewMode(mode) {
     viewMode = mode;
@@ -1673,10 +1654,6 @@
             <button class="learn-btn${item.learned ? ' is-learned' : ''}" data-id="${item.id}">
               ${item.learned ? '&#10003; Đã thuộc — bỏ đánh dấu' : 'Đánh dấu đã thuộc'}
             </button>
-            <div class="srs-buttons">
-              <button class="srs-btn forget" data-id="${item.id}">😕 Quên</button>
-              <button class="srs-btn remember" data-id="${item.id}">😊 Nhớ</button>
-            </div>
             <div class="hint">chạm để quay lại</div>
           </div>
         </div>
@@ -1765,9 +1742,7 @@
     main.querySelectorAll('.card-flip').forEach(card => {
       card.addEventListener('click', () => {
         if (card._suppressClick) return;
-        const willFlip = !card.classList.contains('flipped');
         card.classList.toggle('flipped');
-        if (willFlip) recordReview(card.dataset.id);
       });
     });
     main.querySelectorAll('.speak-btn').forEach(btn => {
@@ -1786,18 +1761,6 @@
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         toggleFavorite(btn.dataset.id);
-      });
-    });
-    main.querySelectorAll('.srs-btn.remember').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        gradeReview(btn.dataset.id, true);
-      });
-    });
-    main.querySelectorAll('.srs-btn.forget').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        gradeReview(btn.dataset.id, false);
       });
     });
     main.querySelectorAll('.swipe-wrapper').forEach(attachSwipeGesture);
@@ -1895,58 +1858,6 @@
       );
     } catch (err) {
       console.error('Không lưu được yêu thích:', err);
-    }
-  }
-
-  // ---------- Ôn tập ngắt quãng (Spaced Repetition, kiểu SM-2 rút gọn) ----------
-  async function gradeReview(id, remembered) {
-    if (!currentUser) {
-      openAuthModal();
-      return;
-    }
-    const item = allItems.find(it => String(it.id) === String(id));
-    if (!item) return;
-
-    let ease = item.ease || 2.5;
-    let interval = item.interval || 0;
-    let reps = item.reps || 0;
-
-    if (remembered) {
-      reps += 1;
-      if (reps === 1) interval = 1;
-      else if (reps === 2) interval = 6;
-      else interval = Math.round(interval * ease);
-      ease = Math.min(3.0, ease + 0.1);
-    } else {
-      reps = 0;
-      interval = 1;
-      ease = Math.max(1.3, ease - 0.2);
-    }
-
-    const nextDate = new Date();
-    nextDate.setDate(nextDate.getDate() + interval);
-    const nextStr = nextDate.toISOString().slice(0, 10);
-
-    item.ease = ease;
-    item.interval = interval;
-    item.reps = reps;
-    item.nextReview = nextStr;
-    renderTopicTabs();
-    renderCategoryChips();
-    render();
-
-    if (offline || !supabaseClient) return;
-    try {
-      await supabaseClient.from('progress').upsert(
-        {
-          vocab_id: item.id, user_id: currentUser.id,
-          ease_factor: ease, interval_days: interval, repetitions: reps,
-          next_review_date: nextStr, last_reviewed: new Date().toISOString()
-        },
-        { onConflict: 'vocab_id,user_id' }
-      );
-    } catch (err) {
-      console.error('Không lưu được lịch ôn tập:', err);
     }
   }
 
@@ -2050,7 +1961,7 @@
             id: newRow.id, term: newRow.term, ipa: newRow.ipa, meaning: newRow.meaning,
             en: newRow.example_en, vi: newRow.example_vi, category: newRow.category,
             topic: CATEGORY_TOPIC[newRow.category],
-            learned: false, favorite: false, reviewedCount: 0, ease: 2.5, interval: 0, reps: 0, nextReview: null
+            learned: false, favorite: false, reviewedCount: 0
           });
         }
       }
@@ -2079,22 +1990,6 @@
     } catch (err) {
       console.error(err);
       alert('Không xóa được: ' + (err.message || 'lỗi không xác định'));
-    }
-  }
-
-  // ---------- Ghi nhận lượt ôn tập (best-effort, không chặn giao diện) ----------
-  async function recordReview(id) {
-    if (offline || !supabaseClient || !currentUser) return;
-    const item = allItems.find(it => String(it.id) === String(id));
-    if (!item) return;
-    item.reviewedCount = (item.reviewedCount || 0) + 1;
-    try {
-      await supabaseClient.from('progress').upsert(
-        { vocab_id: item.id, user_id: currentUser.id, reviewed_count: item.reviewedCount, last_reviewed: new Date().toISOString() },
-        { onConflict: 'vocab_id,user_id' }
-      );
-    } catch (err) {
-      console.error('Không ghi nhận được lượt ôn:', err);
     }
   }
 
